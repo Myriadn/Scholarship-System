@@ -97,9 +97,12 @@ class SmartService
         $penilaians = $this->hitungNilaiAkhir($penilaians, $kriteria);
         $penilaians = $this->ranking($penilaians);
 
-        // Simpan hasil ke database
+        // Simpan hasil ke database (hanya nilai_akhir_vi dan ranking)
         foreach ($penilaians as $p) {
-            $p->save();
+            PenilaianBeasiswa::where('id', $p->id)->update([
+                'nilai_akhir_vi' => $p->nilai_akhir_vi,
+                'ranking' => $p->ranking,
+            ]);
         }
 
         return $penilaians;

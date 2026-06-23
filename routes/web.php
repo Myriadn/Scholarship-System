@@ -11,6 +11,10 @@ use App\Http\Controllers\KepalaSekolah\LaporanController as KepalaSekolahLaporan
 Route::get('/', [LandingPageController::class, 'index'])->name('home');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('dashboard');
+    })->name('dashboard');
+
     // Siswa routes
     Route::prefix('siswa')->name('siswa.')->middleware('role:siswa')->group(function () {
         Route::get('dashboard', [SiswaDashboardController::class, 'index'])->name('dashboard');
