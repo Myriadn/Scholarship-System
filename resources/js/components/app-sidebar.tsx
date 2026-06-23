@@ -3,39 +3,25 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { ClipboardList, FileSpreadsheet, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        url: '/dashboard',
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
+    const { auth } = usePage().props as { auth: { user: { role: string } } };
+    const role = auth?.user?.role;
+
+    const mainNavItems: NavItem[] = getNavItems(role);
+
+    const footerNavItems: NavItem[] = [];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href={'/' + getDashboardRoute(role)} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -53,4 +39,33 @@ export function AppSidebar() {
             </SidebarFooter>
         </Sidebar>
     );
+}
+
+function getDashboardRoute(role?: string): string {
+    switch (role) {
+        case 'siswa':
+            return 'siswa/dashboard';
+        case 'staf_tu':
+            return 'staf-tu/dashboard';
+        case 'kepala_sekolah':
+            return 'kepala-sekolah/laporan';
+        default:
+            return 'dashboard';
+    }
+}
+
+function getNavItems(role?: string): NavItem[] {
+    switch (role) {
+        case 'siswa':
+            return [
+                { title: 'Dashboard', url: '/siswa/dashboard', icon: LayoutGrid },
+                { title: 'Pendaftaran Beasiswa', url: '/siswa/pendaftaran', icon: ClipboardList },
+            ];
+        case 'staf_tu':
+            return [{ title: 'Dashboard', url: '/staf-tu/dashboard', icon: LayoutGrid }];
+        case 'kepala_sekolah':
+            return [{ title: 'Laporan & Validasi', url: '/kepala-sekolah/laporan', icon: FileSpreadsheet }];
+        default:
+            return [{ title: 'Dashboard', url: '/dashboard', icon: LayoutGrid }];
+    }
 }
