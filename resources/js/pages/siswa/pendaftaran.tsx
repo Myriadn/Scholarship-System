@@ -1,49 +1,36 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import {
-    AlertCircle,
-    CheckCircle,
-    ChevronRight,
-    FileText,
-    Home,
-    Upload,
-    X,
-} from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
-import { FileUpload } from '@/components/file-upload';
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { CheckCircle, ClipboardList, Send, Upload, User } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/siswa/dashboard' },
     { title: 'Beasiswa Saya', href: '/siswa/pendaftaran' },
 ];
 
+const jurusanOptions = ['Teknik Komputer & Jaringan', 'Teknik Kendaraan Ringan', 'Teknik Sepeda Motor', 'Akuntansi', 'Administrasi Perkantoran'];
+
+const kelasOptions = ['X (Sepuluh)', 'XI (Sebelas)', 'XII (Dua Belas)'];
+
+const prestasiOptions = [
+    { value: '1', label: '1 - Tidak Ada' },
+    { value: '2', label: '2 - Sekolah' },
+    { value: '3', label: '3 - Kabupaten/Kota' },
+    { value: '4', label: '4 - Provinsi' },
+    { value: '5', label: '5 - Nasional' },
+];
+
 export default function Pendaftaran() {
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
     const [showSuccess, setShowSuccess] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        nisn: '1234567890',
-        nama: 'Ahmad Fauzi',
+        nisn: '',
+        nama: user.name || '',
         jurusan: '',
         kelas: '',
         c1_rapor: '',
@@ -65,286 +52,317 @@ export default function Pendaftaran() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <FigmaSidebarLayout breadcrumbs={breadcrumbs} roleLabel="Siswa Dashboard">
             <Head title="Pendaftaran Beasiswa" />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">Pendaftaran Beasiswa</h1>
-                    <p className="mt-1 text-sm text-[#64748B]">
-                        Lengkapi data diri, input kriteria, dan unggah berkas pendukung untuk mendaftar beasiswa.
+            <div className="p-8 pb-16">
+                {/* ── Header Section ── */}
+                <div className="mb-8">
+                    <h1 className="text-[32px] leading-[38.4px] font-bold tracking-[-0.02em] text-[#00236F]">Formulir Pendaftaran Beasiswa</h1>
+                    <p className="mt-1.5 max-w-2xl text-base leading-[25.6px] text-[#444651]">
+                        Lengkapi data diri dan kriteria di bawah ini secara akurat. Data ini akan diproses menggunakan metode SMART untuk menentukan
+                        kelayakan penerima beasiswa.
                     </p>
                 </div>
 
-                <form onSubmit={submit} className="space-y-6">
-                    {/* Data Pribadi Siswa */}
-                    <Card className="border-[#E2E8F0]">
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1E3A8A]/10">
-                                    <FileText className="h-5 w-5 text-[#1E3A8A]" />
+                {/* ── Form Grid ── */}
+                <form onSubmit={submit}>
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                        {/* ── Left Column: Personal Data + Kriteria ── */}
+                        <div className="flex flex-col gap-8 lg:col-span-7">
+                            {/* Section: Data Pribadi */}
+                            <div className="flex flex-col gap-6 rounded-lg border border-[#E2E8F0] bg-white p-8">
+                                <div className="flex items-center gap-3 border-b border-[#E2E8F0] pb-4">
+                                    <User className="h-4 w-4 text-[#00236F]" />
+                                    <h2 className="text-xl leading-7 font-semibold text-[#191C1E]">Data Pribadi Siswa</h2>
                                 </div>
-                                <div>
-                                    <CardTitle className="text-base text-[#0F172A]">Data Pribadi Siswa</CardTitle>
-                                    <CardDescription>Data diri sesuai dengan data sekolah</CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="grid gap-4 sm:grid-cols-2">
-                            <div className="space-y-2">
-                                <Label htmlFor="nisn">NISN</Label>
-                                <Input
-                                    id="nisn"
-                                    value={data.nisn}
-                                    disabled
-                                    className="border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="nama">Nama Lengkap</Label>
-                                <Input
-                                    id="nama"
-                                    value={data.nama}
-                                    disabled
-                                    className="border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="jurusan">Jurusan</Label>
-                                <Select
-                                    value={data.jurusan}
-                                    onValueChange={(value) => setData('jurusan', value)}
-                                >
-                                    <SelectTrigger id="jurusan" className="border-[#E2E8F0]">
-                                        <SelectValue placeholder="Pilih Jurusan" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="RPL">Rekayasa Perangkat Lunak</SelectItem>
-                                        <SelectItem value="TKJ">Teknik Komputer & Jaringan</SelectItem>
-                                        <SelectItem value="Multimedia">Multimedia</SelectItem>
-                                        <SelectItem value="Animasi">Animasi</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.jurusan} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="kelas">Kelas</Label>
-                                <Select
-                                    value={data.kelas}
-                                    onValueChange={(value) => setData('kelas', value)}
-                                >
-                                    <SelectTrigger id="kelas" className="border-[#E2E8F0]">
-                                        <SelectValue placeholder="Pilih Kelas" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="X">X (Sepuluh)</SelectItem>
-                                        <SelectItem value="XI">XI (Sebelas)</SelectItem>
-                                        <SelectItem value="XII">XII (Dua Belas)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.kelas} />
-                            </div>
-                        </CardContent>
-                    </Card>
 
-                    {/* Input Kriteria C1-C5 */}
-                    <Card className="border-[#E2E8F0]">
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1E3A8A]/10">
-                                    <AlertCircle className="h-5 w-5 text-[#1E3A8A]" />
-                                </div>
-                                <div>
-                                    <CardTitle className="text-base text-[#0F172A]">Input Kriteria</CardTitle>
-                                    <CardDescription>
-                                        Masukkan data kriteria untuk perhitungan SMART
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <div className="space-y-2">
-                                <Label htmlFor="c1_rapor">C1: Nilai Rata-rata Rapor</Label>
-                                <Input
-                                    id="c1_rapor"
-                                    type="number"
-                                    min={0}
-                                    max={100}
-                                    placeholder="0 - 100"
-                                    value={data.c1_rapor}
-                                    onChange={(e) => setData('c1_rapor', e.target.value)}
-                                    className="border-[#E2E8F0]"
-                                />
-                                <InputError message={errors.c1_rapor} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="c2_penghasilan">C2: Penghasilan Orang Tua</Label>
-                                <Input
-                                    id="c2_penghasilan"
-                                    type="number"
-                                    placeholder="Rp"
-                                    value={data.c2_penghasilan}
-                                    onChange={(e) => setData('c2_penghasilan', e.target.value)}
-                                    className="border-[#E2E8F0]"
-                                />
-                                <InputError message={errors.c2_penghasilan} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="c3_tanggungan">C3: Jumlah Tanggungan</Label>
-                                <Input
-                                    id="c3_tanggungan"
-                                    type="number"
-                                    min={0}
-                                    placeholder="Jumlah anak"
-                                    value={data.c3_tanggungan}
-                                    onChange={(e) => setData('c3_tanggungan', e.target.value)}
-                                    className="border-[#E2E8F0]"
-                                />
-                                <InputError message={errors.c3_tanggungan} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="c4_prestasi">C4: Prestasi</Label>
-                                <Select
-                                    value={data.c4_prestasi}
-                                    onValueChange={(value) => setData('c4_prestasi', value)}
-                                >
-                                    <SelectTrigger id="c4_prestasi" className="border-[#E2E8F0]">
-                                        <SelectValue placeholder="Pilih Tingkat Prestasi" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">1 - Tidak Ada</SelectItem>
-                                        <SelectItem value="2">2 - Sekolah</SelectItem>
-                                        <SelectItem value="3">3 - Kota</SelectItem>
-                                        <SelectItem value="4">4 - Provinsi</SelectItem>
-                                        <SelectItem value="5">5 - Nasional</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.c4_prestasi} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="c5_absensi">C5: Absensi</Label>
-                                <Input
-                                    id="c5_absensi"
-                                    type="number"
-                                    min={0}
-                                    max={100}
-                                    placeholder="0 - 100"
-                                    value={data.c5_absensi}
-                                    onChange={(e) => setData('c5_absensi', e.target.value)}
-                                    className="border-[#E2E8F0]"
-                                />
-                                <InputError message={errors.c5_absensi} />
-                            </div>
-                        </CardContent>
-                    </Card>
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    {/* NISN */}
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">NISN (10 Digit)</label>
+                                        <input
+                                            type="text"
+                                            value={data.nisn}
+                                            onChange={(e) => setData('nisn', e.target.value)}
+                                            placeholder="001234455"
+                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                        />
+                                        <InputError message={errors.nisn} />
+                                    </div>
 
-                    {/* Upload Berkas */}
-                    <Card className="border-[#E2E8F0]">
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1E3A8A]/10">
-                                    <Upload className="h-5 w-5 text-[#1E3A8A]" />
-                                </div>
-                                <div>
-                                    <CardTitle className="text-base text-[#0F172A]">Upload Berkas</CardTitle>
-                                    <CardDescription>
-                                        Unggah dokumen pendukung dalam format PDF atau gambar
-                                    </CardDescription>
+                                    {/* Nama Lengkap */}
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Nama Lengkap</label>
+                                        <input
+                                            type="text"
+                                            value={data.nama}
+                                            onChange={(e) => setData('nama', e.target.value)}
+                                            placeholder="Ahmad Fauzi"
+                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                        />
+                                        <InputError message={errors.nama} />
+                                    </div>
+
+                                    {/* Jurusan */}
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Jurusan</label>
+                                        <select
+                                            value={data.jurusan}
+                                            onChange={(e) => setData('jurusan', e.target.value)}
+                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] opacity-70 transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                        >
+                                            <option value="">Pilih Jurusan</option>
+                                            {jurusanOptions.map((j) => (
+                                                <option key={j} value={j}>
+                                                    {j}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError message={errors.jurusan} />
+                                    </div>
+
+                                    {/* Kelas */}
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Kelas</label>
+                                        <select
+                                            value={data.kelas}
+                                            onChange={(e) => setData('kelas', e.target.value)}
+                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] opacity-70 transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                        >
+                                            <option value="">Pilih Kelas</option>
+                                            {kelasOptions.map((k) => (
+                                                <option key={k} value={k}>
+                                                    {k}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError message={errors.kelas} />
+                                    </div>
                                 </div>
                             </div>
-                        </CardHeader>
-                        <CardContent className="grid gap-6 sm:grid-cols-2">
-                            <FileUpload
-                                label="Scan Kartu Keluarga"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                maxSize="2 MB"
-                            />
-                            <FileUpload
-                                label="Scan Rapor Terakhir"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                maxSize="5 MB"
-                            />
-                        </CardContent>
-                    </Card>
 
-                    {/* Agreement & Submit */}
-                    <Card className="border-[#E2E8F0]">
-                        <CardContent className="p-6">
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-3">
-                                    <Checkbox
-                                        id="agreement"
-                                        checked={data.agreement}
-                                        onCheckedChange={(checked) =>
-                                            setData('agreement', checked === true)
-                                        }
-                                        className="mt-0.5"
+                            {/* Section: Input Kriteria */}
+                            <div className="flex flex-col gap-6 rounded-lg border border-[#E2E8F0] bg-white p-8">
+                                <div className="flex items-center gap-3 border-b border-[#E2E8F0] pb-4">
+                                    <ClipboardList className="h-[18px] w-[18px] text-[#00236F]" />
+                                    <h2 className="text-xl leading-7 font-semibold text-[#191C1E]">Input Kriteria</h2>
+                                </div>
+
+                                <div className="flex flex-col gap-6">
+                                    {/* C1: Nilai Rapor */}
+                                    <KriteriaField
+                                        label="Nilai Rata-rata Rapor"
+                                        hint="Masukan nilai 0-100"
+                                        value={data.c1_rapor}
+                                        onChange={(v) => setData('c1_rapor', v)}
+                                        placeholder="85.50"
+                                        error={errors.c1_rapor}
                                     />
-                                    <Label
-                                        htmlFor="agreement"
-                                        className="text-sm font-normal leading-relaxed text-[#64748B]"
-                                    >
-                                        Saya menyatakan bahwa seluruh data dan dokumen yang saya unggah adalah benar
-                                        dan dapat dipertanggungjawabkan. Apabila ditemukan ketidaksesuaian, saya
-                                        bersedia menerima sanksi sesuai ketentuan yang berlaku.
-                                    </Label>
+
+                                    {/* C2: Penghasilan */}
+                                    <KriteriaField
+                                        label="Penghasilan Orang Tua"
+                                        hint="Rata-rata per bulan (Rp)"
+                                        value={data.c2_penghasilan}
+                                        onChange={(v) => setData('c2_penghasilan', v)}
+                                        placeholder="2000000"
+                                        error={errors.c2_penghasilan}
+                                    />
+
+                                    {/* C3: Tanggungan */}
+                                    <KriteriaField
+                                        label="Jumlah Tanggungan"
+                                        hint="Jumlah anak/anggota keluarga"
+                                        value={data.c3_tanggungan}
+                                        onChange={(v) => setData('c3_tanggungan', v)}
+                                        placeholder="3"
+                                        error={errors.c3_tanggungan}
+                                    />
+
+                                    {/* C4: Prestasi */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex w-[237px] flex-col gap-1.5 pt-0.5">
+                                            <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">
+                                                Prestasi (Akademik dan Non-Akademik)
+                                            </label>
+                                            <p className="text-xs leading-4 text-[#505F76]/70">1: Rendah, 5: Nasional</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <select
+                                                value={data.c4_prestasi}
+                                                onChange={(e) => setData('c4_prestasi', e.target.value)}
+                                                className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-3 text-sm text-[#191C1E] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                            >
+                                                <option value="">Pilih tingkat prestasi</option>
+                                                {prestasiOptions.map((p) => (
+                                                    <option key={p.value} value={p.value}>
+                                                        {p.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <InputError message={errors.c4_prestasi} />
+                                        </div>
+                                    </div>
+
+                                    {/* C5: Absensi */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex w-[237px] flex-col">
+                                            <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Absensi</label>
+                                            <p className="text-xs leading-4 text-[#505F76]/70">Semakin tinggi angka = semakin banyak absen</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="text"
+                                                value={data.c5_absensi}
+                                                onChange={(e) => setData('c5_absensi', e.target.value)}
+                                                placeholder="5.2"
+                                                className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-3 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                            />
+                                            <InputError message={errors.c5_absensi} />
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* ── Right Column: Upload + Action ── */}
+                        <div className="flex flex-col gap-8 lg:col-span-5">
+                            {/* Section: Unggah Berkas */}
+                            <div className="flex flex-col gap-6 rounded-lg border border-[#E2E8F0] bg-white p-8">
+                                <div className="flex items-center gap-3 border-b border-[#E2E8F0] pb-4">
+                                    <Upload className="h-4 w-[22px] text-[#00236F]" />
+                                    <h2 className="text-xl leading-7 font-semibold text-[#191C1E]">Unggah Berkas Pendukung</h2>
+                                </div>
+
+                                <div className="flex flex-col gap-6">
+                                    {/* Upload 1: Kartu Keluarga */}
+                                    <UploadZone label="Scan Kartu Keluarga (PDF/JPG)" maxSize="Maksimal 2MB" />
+
+                                    {/* Upload 2: Rapor */}
+                                    <UploadZone label="Scan Rapor Terakhir (PDF)" maxSize="Maksimal 5MB" />
+
+                                    {/* Info Box */}
+                                    <div className="rounded-r border-l-4 border-[#3B82F6] bg-[#3B82F6]/10 p-4">
+                                        <p className="text-xs font-semibold tracking-[0.05em] text-[#00236F] uppercase">Penting:</p>
+                                        <p className="mt-1 text-xs leading-4 text-[#444651]">
+                                            Pastikan semua berkas terlihat jelas dan tidak buram untuk mempercepat proses verifikasi oleh Staf TU.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section: Final Action */}
+                            <div className="flex flex-col gap-2 rounded-lg bg-[#00236F] p-8">
+                                <h3 className="text-xl leading-7 font-semibold text-white">Siap untuk mengirim?</h3>
+                                <p className="text-sm leading-[21px] text-white/90">
+                                    Pastikan seluruh data sudah benar. Setelah dikirim, Anda tidak dapat mengubah data ini secara mandiri.
+                                </p>
+
+                                {/* Agreement */}
+                                <label className="flex cursor-pointer items-start gap-3 py-4">
+                                    <Checkbox
+                                        checked={data.agreement}
+                                        onCheckedChange={(checked) => setData('agreement', checked === true)}
+                                        className="mt-0.5 h-4 w-4 rounded-sm border-white/20 bg-white/20"
+                                    />
+                                    <span className="text-xs font-semibold tracking-[0.05em] text-white uppercase">
+                                        Saya menyatakan bahwa data ini benar dan akurat.
+                                    </span>
+                                </label>
                                 <InputError message={errors.agreement} />
 
-                                <div className="flex items-center justify-between gap-4 rounded-lg bg-[#F8FAFC] p-4">
-                                    <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                                        <AlertCircle className="h-4 w-4 text-[#F59E0B]" />
-                                        Pastikan semua data telah terisi dengan benar sebelum mengirim
-                                    </div>
-                                    <Button
-                                        type="submit"
-                                        className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90"
-                                        disabled={processing || !data.agreement}
-                                    >
-                                        {processing ? (
-                                            <span className="flex items-center gap-2">
-                                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                                Memproses...
-                                            </span>
-                                        ) : (
-                                            <span className="flex items-center gap-2">
-                                                Kirim Pendaftaran
-                                                <ChevronRight className="h-4 w-4" />
-                                            </span>
-                                        )}
-                                    </Button>
-                                </div>
+                                {/* Submit Button */}
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="flex w-full items-center justify-center gap-2 rounded bg-white px-4 py-4 text-base font-bold text-[#00236F] transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
+                                >
+                                    {processing ? (
+                                        'Mengirim...'
+                                    ) : (
+                                        <>
+                                            Kirim Pendaftaran
+                                            <Send className="h-4 w-[19px]" />
+                                        </>
+                                    )}
+                                </button>
                             </div>
-                        </CardContent>
-                    </Card>
-                </form>
-            </div>
-
-            {/* Success Modal */}
-            <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#10B981]/10">
-                            <CheckCircle className="h-8 w-8 text-[#10B981]" />
                         </div>
-                        <DialogTitle className="text-center text-xl text-[#0F172A]">
-                            Pendaftaran Berhasil!
-                        </DialogTitle>
-                        <DialogDescription className="text-center">
-                            Data pengajuan beasiswa Anda telah berhasil dikirim dan akan segera diproses oleh Tim
-                            Tata Usaha. Silakan pantau status pengajuan Anda melalui dashboard.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-center pt-2">
-                        <Link href="/siswa/dashboard">
-                            <Button className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90">
-                                <Home className="mr-2 h-4 w-4" />
-                                Kembali ke Dashboard
-                            </Button>
-                        </Link>
                     </div>
-                </DialogContent>
-            </Dialog>
-        </AppLayout>
+                </form>
+
+                {/* ── Success Dialog ── */}
+                {showSuccess && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                        <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                                <CheckCircle className="h-8 w-8 text-green-600" />
+                            </div>
+                            <h2 className="text-xl font-bold text-[#191C1E]">Pendaftaran Berhasil!</h2>
+                            <p className="mt-2 text-sm text-[#444651]">
+                                Data Anda telah terkirim dan akan diproses oleh Staf TU. Pantau status pengajuan melalui dashboard.
+                            </p>
+                            <button
+                                onClick={() => setShowSuccess(false)}
+                                className="mt-6 w-full rounded bg-[#00236F] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#001B59]"
+                            >
+                                Kembali ke Dashboard
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </FigmaSidebarLayout>
+    );
+}
+
+/* ── Reusable Components ── */
+
+function KriteriaField({
+    label,
+    hint,
+    value,
+    onChange,
+    placeholder,
+    error,
+}: {
+    label: string;
+    hint: string;
+    value: string;
+    onChange: (v: string) => void;
+    placeholder: string;
+    error?: string;
+}) {
+    return (
+        <div className="flex items-start gap-4">
+            <div className="flex w-[237px] flex-col gap-1.5 pt-0.5">
+                <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">{label}</label>
+                <p className="text-xs leading-4 text-[#505F76]/70">{hint}</p>
+            </div>
+            <div className="flex-1">
+                <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-3 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                />
+                <InputError message={error} />
+            </div>
+        </div>
+    );
+}
+
+function UploadZone({ label, maxSize }: { label: string; maxSize: string }) {
+    return (
+        <div className="flex flex-col gap-3">
+            <p className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">{label}</p>
+            <div className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded border-2 border-dashed border-[#C5C5D3] bg-[#F7F9FB] px-6 py-6 text-center transition-colors hover:border-[#00236F] hover:bg-[#F2F4F6]">
+                <Upload className="h-5 w-4 text-[#757682]" />
+                <p className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Klik untuk pilih file atau drag & drop</p>
+                <p className="text-[10px] leading-[15px] text-[#757682]">{maxSize}</p>
+            </div>
+        </div>
     );
 }

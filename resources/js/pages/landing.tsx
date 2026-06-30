@@ -162,13 +162,7 @@ export default function Landing() {
                                         </form>
 
                                         <p className="mt-6 text-center text-sm text-[#64748B]">
-                                            Belum punya akun?{' '}
-                                            <Link
-                                                href={route('register')}
-                                                className="font-semibold text-[#1E3A8A] hover:text-[#1E3A8A]/80 hover:underline"
-                                            >
-                                                Daftar Sekarang
-                                            </Link>
+                                            © {new Date().getFullYear()} SMK Scholarship System
                                         </p>
                                     </div>
                                 </div>

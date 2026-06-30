@@ -1,14 +1,25 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\PendaftaranController as SiswaPendaftaranController;
 use App\Http\Controllers\StafTU\DashboardController as StafTUDashboardController;
 use App\Http\Controllers\KepalaSekolah\LaporanController as KepalaSekolahLaporanController;
 
-Route::get('/', [LandingPageController::class, 'index'])->name('home');
+Route::get('/', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        return redirect(match ($user->role) {
+            'siswa' => route('siswa.dashboard'),
+            'staf_tu' => route('staf-tu.dashboard'),
+            'kepala_sekolah' => route('kepala-sekolah.laporan'),
+            default => route('dashboard'),
+        });
+    }
+    return redirect()->route('login');
+})->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
