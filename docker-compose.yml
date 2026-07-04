@@ -10,6 +10,8 @@ services:
       - '9002:80'
     env_file:
       - .env
+    volumes:
+      - ./.env:/var/www/html/.env
     networks:
       - jobless
 
