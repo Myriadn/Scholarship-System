@@ -109,7 +109,7 @@ export default function SiswaDashboard() {
                             🎉 Selamat! Anda dinyatakan <span className="uppercase">Lolos</span> seleksi beasiswa.
                         </p>
                         <p className="text-sm leading-[21px] text-[#444651]">
-                            Anda termasuk dalam {penilaian?.ranking} besar penerima Beasiswa Prestasi Akademik 2024/2025. Silakan hubungi pihak
+                            Anda termasuk dalam {penilaian?.ranking} besar penerima Beasiswa Prestasi Akademik 2025/2025. Silakan hubungi pihak
                             sekolah untuk informasi lebih lanjut mengenai pencairan dana beasiswa.
                         </p>
                     </div>
@@ -147,7 +147,7 @@ export default function SiswaDashboard() {
                             <div className="flex flex-col gap-1">
                                 <h3 className="text-xl leading-7 font-semibold text-[#191C1E]">Status Pengajuan</h3>
                                 <p className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">
-                                    Beasiswa Prestasi Akademik 2024/2025
+                                    Beasiswa Prestasi Akademik 2025/2025
                                 </p>
                             </div>
                             <span

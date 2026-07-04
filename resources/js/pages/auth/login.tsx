@@ -38,7 +38,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 {/* Badge */}
                                 <div className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#00236F]/10 px-4 py-2">
                                     <Award className="h-[13.5px] w-[16.5px] text-[#00236F]" />
-                                    <span className="text-xs font-bold tracking-[0.05em] text-[#00236F] uppercase">PENDAFTARAN TA 2024/2025</span>
+                                    <span className="text-xs font-bold tracking-[0.05em] text-[#00236F] uppercase">PENDAFTARAN TA 2025/2026</span>
                                 </div>
 
                                 {/* Heading */}
@@ -54,22 +54,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     apresiasi kepada siswa berprestasi dan membantu mereka yang membutuhkan melalui proses verifikasi yang transparan
                                     dan akurat.
                                 </p>
-
-                                {/* Stats Grid */}
-                                <div className="flex flex-wrap justify-center gap-6 pt-4 sm:justify-start">
-                                    <div className="flex w-[216px] flex-col gap-1 rounded-lg border border-[#C5C5D3] bg-white p-4">
-                                        <span className="text-2xl font-bold text-[#00236F]">500+</span>
-                                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Siswa Terdaftar</span>
-                                    </div>
-                                    <div className="flex w-[216px] flex-col gap-1 rounded-lg border border-[#C5C5D3] bg-white p-4">
-                                        <span className="text-2xl font-bold text-[#00236F]">12</span>
-                                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Kategori Beasiswa</span>
-                                    </div>
-                                    <div className="flex w-[216px] flex-col gap-1 rounded-lg border border-[#C5C5D3] bg-white p-4">
-                                        <span className="text-2xl font-bold text-[#00236F]">Rp 2M+</span>
-                                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Total Dana Hibah</span>
-                                    </div>
-                                </div>
                             </div>
 
                             {/* ── Login Form Card (Right) ── */}

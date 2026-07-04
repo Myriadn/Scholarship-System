@@ -20,8 +20,16 @@ class PendaftaranController extends Controller
     {
         $user = $request->user()->load('siswa.penilaianBeasiswa');
 
+        if ($user->siswa && $user->siswa->penilaianBeasiswa) {
+            return Inertia::render('siswa/pendaftaran', [
+                'siswa' => $user->siswa,
+                'sudah_daftar' => true,
+            ]);
+        }
+
         return Inertia::render('siswa/pendaftaran', [
             'siswa' => $user->siswa,
+            'sudah_daftar' => false,
         ]);
     }
 
@@ -44,12 +52,10 @@ class PendaftaranController extends Controller
             'c2_penghasilan' => 'required|numeric|min:0|max:999999999',
             'c3_tanggungan' => 'required|numeric|min:0|max:100',
             'c4_prestasi' => 'required|numeric|min:1|max:5',
-            'c5_absensi' => 'required|numeric|min:0|max:100',
             'berkas_kk' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'berkas_rapor' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        // Simpan C1-C5 ke penilaian_beasiswa
+        // Simpan C1-C4 ke penilaian_beasiswa (C5 default 0)
         PenilaianBeasiswa::updateOrCreate(
             ['siswa_id' => $siswa->id],
             [
@@ -57,7 +63,7 @@ class PendaftaranController extends Controller
                 'c2_nilai' => $validated['c2_penghasilan'],
                 'c3_nilai' => $validated['c3_tanggungan'],
                 'c4_nilai' => $validated['c4_prestasi'],
-                'c5_nilai' => $validated['c5_absensi'],
+                'c5_nilai' => 0,
                 'status_approval' => 'pending',
             ]
         );
@@ -69,20 +75,6 @@ class PendaftaranController extends Controller
 
             BerkasSiswa::updateOrCreate(
                 ['siswa_id' => $siswa->id, 'nama_berkas' => 'Kartu Keluarga'],
-                [
-                    'file_path' => $path,
-                    'status_verifikasi' => 'pending',
-                ]
-            );
-        }
-
-        // Simpan berkas Rapor
-        if ($request->hasFile('berkas_rapor')) {
-            $file = $request->file('berkas_rapor');
-            $path = $file->store('berkas/' . $siswa->id, 'public');
-
-            BerkasSiswa::updateOrCreate(
-                ['siswa_id' => $siswa->id, 'nama_berkas' => 'Rapor Terakhir'],
                 [
                     'file_path' => $path,
                     'status_verifikasi' => 'pending',

@@ -49,7 +49,7 @@ class DashboardController extends Controller
      */
     public function verifikasiBerkas(Request $request): Response
     {
-        $siswa = Siswa::with(['penilaianBeasiswa', 'berkasSiswa'])->get();
+        $siswa = Siswa::whereHas('penilaianBeasiswa')->with(['penilaianBeasiswa', 'berkasSiswa'])->get();
 
         return Inertia::render('staf-tu/verifikasi-berkas', [
             'siswa' => $siswa,

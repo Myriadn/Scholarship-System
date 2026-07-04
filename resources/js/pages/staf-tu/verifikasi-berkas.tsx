@@ -1,7 +1,7 @@
 import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Download, Edit2, Eye, FileText, Search, X } from 'lucide-react';
+import { Download, Eye, FileText, Search, X } from 'lucide-react';
 import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,6 +58,7 @@ export default function VerifikasiBerkas() {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedSiswa, setSelectedSiswa] = useState<SiswaItem | null>(null);
     const [verifying, setVerifying] = useState(false);
+    const [detailSiswa, setDetailSiswa] = useState<SiswaItem | null>(null);
     const perPage = 5;
 
     const getStatus = (s: SiswaItem): 'verified' | 'pending' | 'rejected' => {
@@ -100,6 +101,10 @@ export default function VerifikasiBerkas() {
 
     const openVerifikasi = (s: SiswaItem) => {
         setSelectedSiswa(s);
+    };
+
+    const openDetail = (s: SiswaItem) => {
+        setDetailSiswa(s);
     };
 
     const handleVerifikasi = (status: 'verified' | 'rejected') => {
@@ -193,7 +198,7 @@ export default function VerifikasiBerkas() {
 
                                 {/* Nilai Kriteria */}
                                 <div>
-                                    <p class="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Nilai Kriteria</p>
+                                    <p className="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Nilai Kriteria</p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
                                             <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Nilai Akademik</p>
@@ -301,6 +306,101 @@ export default function VerifikasiBerkas() {
                     </div>
                 )}
 
+                {/* ── Detail Siswa (VERIFIED) ── */}
+                {detailSiswa && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                        <div className="w-full max-w-2xl rounded-lg border border-[#C5C5D3] bg-white shadow-lg">
+                            <div className="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4">
+                                <div>
+                                    <h2 className="text-lg font-bold text-[#191C1E]">Detail Siswa</h2>
+                                    <p className="mt-0.5 text-xs text-[#444651]">
+                                        {detailSiswa.nama_siswa} — {detailSiswa.nisn}
+                                    </p>
+                                </div>
+                                <button onClick={() => setDetailSiswa(null)} className="text-[#757682] transition-colors hover:text-[#191C1E]">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-5 px-6 py-6">
+                                <div className="rounded bg-[#F2F4F6] px-4 py-3">
+                                    <div className="grid grid-cols-3 gap-3 text-sm">
+                                        <div>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">NISN</span>
+                                            <p className="font-medium text-[#191C1E]">{detailSiswa.nisn}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">KELAS</span>
+                                            <p className="font-medium text-[#191C1E]">{detailSiswa.kelas}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">JURUSAN</span>
+                                            <p className="font-medium text-[#191C1E]">{detailSiswa.jurusan}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Nilai Kriteria</p>
+                                    <div className="grid grid-cols-5 gap-2">
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
+                                            <p className="text-xs font-semibold text-[#757682] uppercase">Nilai Akademik</p>
+                                            <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c1_nilai ?? '-'}</p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
+                                            <p className="text-xs font-semibold text-[#757682] uppercase">Penghasilan</p>
+                                            <p className="text-base font-bold text-[#191C1E]">
+                                                {formatRupiah(detailSiswa.penilaian_beasiswa?.c2_nilai)}
+                                            </p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
+                                            <p className="text-xs font-semibold text-[#757682] uppercase">Tanggungan</p>
+                                            <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c3_nilai ?? '-'}</p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
+                                            <p className="text-xs font-semibold text-[#757682] uppercase">Prestasi</p>
+                                            <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c4_nilai ?? '-'}</p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
+                                            <p className="text-xs font-semibold text-[#757682] uppercase">Absensi</p>
+                                            <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c5_nilai ?? '-'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {detailSiswa.berkas_siswa && detailSiswa.berkas_siswa.length > 0 && (
+                                    <div>
+                                        <p className="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Berkas</p>
+                                        <div className="flex flex-col gap-2">
+                                            {detailSiswa.berkas_siswa.map((b) => (
+                                                <div
+                                                    key={b.id}
+                                                    className="flex items-center justify-between rounded border border-[#E2E8F0] bg-[#F9FAFB] px-4 py-2.5"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <FileText className="h-5 w-5 text-[#00236F]" />
+                                                        <p className="text-sm font-medium text-[#191C1E]">{b.nama_berkas}</p>
+                                                    </div>
+                                                    <a
+                                                        href={route('staf-tu.berkas.download', b.id)}
+                                                        target="_blank"
+                                                        className="text-xs font-semibold text-[#00236F] underline"
+                                                    >
+                                                        Lihat
+                                                    </a>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <button
+                                    onClick={() => setDetailSiswa(null)}
+                                    className="w-full rounded bg-[#00236F] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#001B59]"
+                                >
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── Table ── */}
                 <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
                     <div className="flex flex-col items-start justify-between gap-4 border-b border-[#E2E8F0] bg-[#F2F4F6] px-4 py-3 sm:flex-row sm:items-center">
@@ -336,8 +436,7 @@ export default function VerifikasiBerkas() {
                             <span className="w-[100px] text-xs font-semibold tracking-[0.05em] text-white uppercase">KELAS</span>
                             <span className="w-[120px] text-xs font-semibold tracking-[0.05em] text-white uppercase">JURUSAN</span>
                             <span className="w-[100px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">STATUS</span>
-                            <span className="w-[100px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">NILAI AKHIR</span>
-                            <span className="w-[80px] text-left text-xs font-semibold tracking-[0.05em] text-white uppercase">AKSI</span>
+                            <span className="w-[80px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">AKSI</span>
                         </div>
 
                         {paginatedData.length === 0 ? (
@@ -350,7 +449,6 @@ export default function VerifikasiBerkas() {
                                     const avatar = AVATAR_COLORS[globalIdx % AVATAR_COLORS.length];
                                     const status = getStatus(s);
                                     const style = statusStyle[status];
-                                    const nilai = s.penilaian_beasiswa?.nilai_akhir_vi;
                                     return (
                                         <div key={s.id} className={`flex items-center px-6 py-3 transition-colors hover:bg-[#F8FAFC] ${rowBg}`}>
                                             <span className="w-[120px] font-mono text-[13px] leading-[19.5px] text-[#191C1E]">
@@ -375,21 +473,11 @@ export default function VerifikasiBerkas() {
                                                     {getStatusLabel(s)}
                                                 </span>
                                             </div>
-                                            <div className="flex w-[100px] items-center justify-center">
-                                                <span className="text-sm leading-[21px] font-bold text-[#00236F]">
-                                                    {nilai != null ? nilai.toFixed(3) : '-'}
-                                                </span>
-                                            </div>
-                                            <div className="flex w-[80px] items-center justify-start gap-2">
+                                            <div className="flex w-[80px] items-center justify-center gap-2">
                                                 {status === 'verified' ? (
-                                                    <>
-                                                        <ActionBtn>
-                                                            <Eye className="h-[15px] w-[22px] text-[#00236F]" />
-                                                        </ActionBtn>
-                                                        <ActionBtn>
-                                                            <Edit2 className="h-5 w-[18px] text-[#444651]" />
-                                                        </ActionBtn>
-                                                    </>
+                                                    <ActionBtn onClick={() => openDetail(s)}>
+                                                        <Eye className="h-[15px] w-[22px] text-[#00236F]" />
+                                                    </ActionBtn>
                                                 ) : (
                                                     <button
                                                         onClick={() => openVerifikasi(s)}
@@ -443,8 +531,12 @@ export default function VerifikasiBerkas() {
     );
 }
 
-function ActionBtn({ children }: { children: React.ReactNode }) {
-    return <button className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-[#F2F4F6]">{children}</button>;
+function ActionBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+    return (
+        <button onClick={onClick} className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-[#F2F4F6]">
+            {children}
+        </button>
+    );
 }
 
 function PageBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void }) {

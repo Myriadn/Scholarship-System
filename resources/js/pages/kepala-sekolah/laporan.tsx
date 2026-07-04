@@ -1,7 +1,7 @@
 import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { CheckCircle, Download, Printer, Search, Users, Wallet } from 'lucide-react';
+import { CheckCircle, Download, Printer, Search, Users } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -48,7 +48,8 @@ export default function LaporanKepalaSekolah() {
     const endEntry = Math.min(currentPage * perPage, filteredData.length);
 
     const totalPendaftar = penilaians?.length || 0;
-    const rataRataNilai = totalPendaftar > 0 ? (penilaians?.reduce((sum, p) => sum + (p.nilai_akhir_vi || 0), 0) / totalPendaftar).toFixed(3) : '0.000';
+    const rataRataNilai =
+        totalPendaftar > 0 ? (penilaians?.reduce((sum, p) => sum + (p.nilai_akhir_vi || 0), 0) / totalPendaftar).toFixed(3) : '0.000';
 
     const getPageNumbers = () => {
         const pages: (number | 'ellipsis')[] = [];
@@ -121,15 +122,7 @@ export default function LaporanKepalaSekolah() {
                         <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">QUOTA BEASISWA</span>
                         <div className="flex items-center justify-between">
                             <span className="text-2xl leading-[31.2px] font-bold text-[#00236F]">25</span>
-                            <Wallet className="h-5 w-4 text-[#757682]" />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 rounded border border-[#E2E8F0] bg-white p-6">
-                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">RATA-RATA NILAI</span>
-                        <div className="flex items-center justify-between">
-                            <span className="text-2xl leading-[31.2px] font-bold text-[#00236F]">{rataRataNilai}</span>
-                            <Wallet className="h-3 w-5 text-[#757682]" />
+                            <Users className="h-3 w-6 text-[#757682]" />
                         </div>
                     </div>
                 </div>
