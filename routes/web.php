@@ -38,6 +38,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('dashboard', [StafTUDashboardController::class, 'index'])->name('dashboard');
             Route::get('data-siswa', [StafTUDashboardController::class, 'dataSiswa'])->name('data-siswa');
             Route::get('verifikasi-berkas', [StafTUDashboardController::class, 'verifikasiBerkas'])->name('verifikasi-berkas');
+            Route::post('siswa/store', [StafTUDashboardController::class, 'storeSiswa'])->name('siswa.store');
+            Route::post('siswa/delete/{id}', [StafTUDashboardController::class, 'deleteSiswa'])->name('siswa.delete');
+            Route::post('verifikasi', [StafTUDashboardController::class, 'verifikasi'])->name('verifikasi');
             Route::post('proses-smart', [StafTUDashboardController::class, 'prosesHitung'])->name('proses-smart');
         });
 

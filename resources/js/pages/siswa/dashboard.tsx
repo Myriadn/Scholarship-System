@@ -10,7 +10,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Penilaian {
     id: number;
-    nilai_akhir?: number;
+    nilai_akhir_vi?: number;
     ranking?: number;
     status_approval?: string;
     approved_by?: number | null;

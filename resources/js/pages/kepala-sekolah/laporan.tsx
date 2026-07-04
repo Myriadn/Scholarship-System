@@ -12,7 +12,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Penilaian {
     id: number;
     ranking?: number;
-    nilai_akhir?: number;
+    nilai_akhir_vi?: number;
     status_approval?: string;
     approved_by?: number | null;
     approved_at?: string | null;
@@ -48,7 +48,7 @@ export default function LaporanKepalaSekolah() {
     const endEntry = Math.min(currentPage * perPage, filteredData.length);
 
     const totalPendaftar = penilaians?.length || 0;
-    const rataRataNilai = totalPendaftar > 0 ? (penilaians?.reduce((sum, p) => sum + (p.nilai_akhir || 0), 0) / totalPendaftar).toFixed(3) : '0.000';
+    const rataRataNilai = totalPendaftar > 0 ? (penilaians?.reduce((sum, p) => sum + (p.nilai_akhir_vi || 0), 0) / totalPendaftar).toFixed(3) : '0.000';
 
     const getPageNumbers = () => {
         const pages: (number | 'ellipsis')[] = [];
@@ -234,7 +234,7 @@ export default function LaporanKepalaSekolah() {
                                             {/* Skor Akhir */}
                                             <div className="flex w-[100px] items-center justify-center py-1">
                                                 <span className="text-sm leading-[19.6px] font-bold text-[#00236F]">
-                                                    {p.nilai_akhir?.toFixed(3) || '-'}
+                                                    {p.nilai_akhir_vi?.toFixed(3) || '-'}
                                                 </span>
                                             </div>
 

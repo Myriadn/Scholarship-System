@@ -1,8 +1,8 @@
 import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
-import { Download, Edit2, Eye, Search } from 'lucide-react';
-import { useState } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { Download, Edit2, Eye, Search, X } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/staf-tu/dashboard' },
@@ -10,9 +10,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Penilaian {
-    nilai_akhir?: number;
+    nilai_akhir_vi?: number;
     ranking?: number;
-    // other fields...
+    status_approval?: string;
 }
 
 interface SiswaItem {
@@ -38,12 +38,23 @@ export default function VerifikasiBerkas() {
     const { siswa } = usePage<{ siswa: SiswaItem[] }>().props;
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('semua');
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedSiswa, setSelectedSiswa] = useState<SiswaItem | null>(null);
     const perPage = 5;
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        siswa_id: 0,
+        c1_nilai: '',
+        c2_nilai: '',
+        c3_nilai: '',
+        c4_nilai: '',
+        c5_nilai: '',
+    });
 
     const getStatus = (s: SiswaItem): 'verified' | 'pending' | 'rejected' => {
         const pn = s.penilaian_beasiswa;
-        if (!pn?.nilai_akhir) return 'pending';
-        return 'verified';
+        if (!pn) return 'pending';
+        if (pn.nilai_akhir_vi != null) return 'verified';
+        return 'pending';
     };
 
     const getStatusLabel = (s: SiswaItem) => {
@@ -77,26 +88,52 @@ export default function VerifikasiBerkas() {
             .slice(0, 2)
             .toUpperCase() || '--';
 
+    const openVerifikasi = (s: SiswaItem) => {
+        reset();
+        setData('siswa_id', s.id);
+        // Pre-fill from existing penilaian if any
+        if (s.penilaian_beasiswa) {
+            const p = s.penilaian_beasiswa as Record<string, unknown>;
+            setData({
+                siswa_id: s.id,
+                c1_nilai: String(p.c1_nilai ?? ''),
+                c2_nilai: String(p.c2_nilai ?? ''),
+                c3_nilai: String(p.c3_nilai ?? ''),
+                c4_nilai: String(p.c4_nilai ?? ''),
+                c5_nilai: String(p.c5_nilai ?? ''),
+            });
+        }
+        setSelectedSiswa(s);
+    };
+
+    const handleVerifikasi: FormEventHandler = (e) => {
+        e.preventDefault();
+        post(route('staf-tu.verifikasi'), {
+            onSuccess: () => {
+                setSelectedSiswa(null);
+                reset();
+            },
+        });
+    };
+
     const pageNumbers = () => {
-        const pages: number[] = [];
+        const pages: (number | 'ellipsis')[] = [];
         if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else if (currentPage <= 4) {
+            for (let i = 1; i <= 5; i++) pages.push(i);
+            pages.push('ellipsis');
+            pages.push(totalPages);
+        } else if (currentPage >= totalPages - 3) {
+            pages.push(1);
+            pages.push('ellipsis');
+            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
         } else {
-            if (currentPage <= 4) {
-                for (let i = 1; i <= 5; i++) pages.push(i);
-                pages.push(-1); // ellipsis
-                pages.push(totalPages);
-            } else if (currentPage >= totalPages - 3) {
-                pages.push(1);
-                pages.push(-1);
-                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
-            } else {
-                pages.push(1);
-                pages.push(-1);
-                for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-                pages.push(-1);
-                pages.push(totalPages);
-            }
+            pages.push(1);
+            pages.push('ellipsis');
+            for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+            pages.push('ellipsis');
+            pages.push(totalPages);
         }
         return pages;
     };
@@ -114,6 +151,91 @@ export default function VerifikasiBerkas() {
                     </p>
                 </div>
 
+                {/* ── Modal Verifikasi ── */}
+                {selectedSiswa && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                        <div className="w-full max-w-lg rounded-lg border border-[#C5C5D3] bg-white shadow-lg">
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4">
+                                <div>
+                                    <h2 className="text-lg font-bold text-[#191C1E]">Verifikasi Data Siswa</h2>
+                                    <p className="mt-0.5 text-xs text-[#444651]">
+                                        {selectedSiswa.nama_siswa} — {selectedSiswa.nisn}
+                                    </p>
+                                </div>
+                                <button onClick={() => setSelectedSiswa(null)} className="text-[#757682] transition-colors hover:text-[#191C1E]">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            {/* Form */}
+                            <form onSubmit={handleVerifikasi} className="flex flex-col gap-5 px-6 py-6">
+                                {/* Info Siswa */}
+                                <div className="rounded bg-[#F2F4F6] px-4 py-3">
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <div>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">NISN</span>
+                                            <p className="font-medium text-[#191C1E]">{selectedSiswa.nisn}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Kelas</span>
+                                            <p className="font-medium text-[#191C1E]">{selectedSiswa.kelas}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Jurusan</span>
+                                            <p className="font-medium text-[#191C1E]">{selectedSiswa.jurusan}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Input C1-C5 */}
+                                <p className="text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Input Nilai Kriteria (C1–C5)</p>
+
+                                {[
+                                    { key: 'c1_nilai', label: 'C1 — Nilai Akademik', hint: 'Nilai rata-rata rapor (0–100)' },
+                                    { key: 'c2_nilai', label: 'C2 — Penghasilan Orang Tua', hint: 'Rata-rata per bulan dalam skala (0–100)' },
+                                    { key: 'c3_nilai', label: 'C3 — Jumlah Tanggungan', hint: 'Jumlah tanggungan dalam skala (0–100)' },
+                                    { key: 'c4_nilai', label: 'C4 — Prestasi', hint: 'Tingkat prestasi dalam skala (0–100)' },
+                                    { key: 'c5_nilai', label: 'C5 — Absensi', hint: 'Semakin tinggi = semakin banyak absen (0–100)' },
+                                ].map((field) => (
+                                    <div key={field.key} className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">{field.label}</label>
+                                        <p className="text-xs leading-4 text-[#505F76]/70">{field.hint}</p>
+                                        <input
+                                            type="text"
+                                            value={(data as unknown as Record<string, string>)[field.key]}
+                                            onChange={(e) => setData(field.key as keyof typeof data, e.target.value)}
+                                            placeholder="0"
+                                            className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-2.5 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                        />
+                                        {(errors as Record<string, string | undefined>)[field.key] && (
+                                            <p className="text-sm text-red-600">{(errors as Record<string, string | undefined>)[field.key]}</p>
+                                        )}
+                                    </div>
+                                ))}
+
+                                {/* Actions */}
+                                <div className="flex items-center justify-end gap-3 border-t border-[#E2E8F0] pt-5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedSiswa(null)}
+                                        className="rounded border border-[#C5C5D3] px-5 py-2.5 text-sm font-semibold text-[#444651] transition-colors hover:bg-[#F2F4F6]"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="rounded bg-[#00236F] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#001B59] disabled:cursor-not-allowed disabled:opacity-70"
+                                    >
+                                        {processing ? 'Memproses...' : 'Verifikasi & Simpan'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── Table Section ── */}
                 <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
                     {/* Filters Bar */}
@@ -124,7 +246,6 @@ export default function VerifikasiBerkas() {
                                 <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">FILTER:</span>
                             </div>
 
-                            {/* Status Filter */}
                             <select
                                 value={statusFilter}
                                 onChange={(e) => {
@@ -161,7 +282,7 @@ export default function VerifikasiBerkas() {
                             <span className="w-[120px] text-xs font-semibold tracking-[0.05em] text-white uppercase">JURUSAN</span>
                             <span className="w-[100px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">STATUS</span>
                             <span className="w-[100px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">NILAI AKHIR</span>
-                            <span className="w-[80px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">AKSI</span>
+                            <span className="w-[80px] text-left text-xs font-semibold tracking-[0.05em] text-white uppercase">AKSI</span>
                         </div>
 
                         {/* Body */}
@@ -175,7 +296,7 @@ export default function VerifikasiBerkas() {
                                     const avatar = AVATAR_COLORS[globalIdx % AVATAR_COLORS.length];
                                     const status = getStatus(s);
                                     const style = statusStyle[status];
-                                    const nilai = s.penilaian_beasiswa?.nilai_akhir;
+                                    const nilai = s.penilaian_beasiswa?.nilai_akhir_vi;
 
                                     return (
                                         <div key={s.id} className={`flex items-center px-6 py-3 transition-colors hover:bg-[#F8FAFC] ${rowBg}`}>
@@ -202,7 +323,7 @@ export default function VerifikasiBerkas() {
                                             <span className="w-[120px] text-sm leading-[19.6px] text-[#444651]">{s.jurusan || '-'}</span>
 
                                             {/* Status Badge */}
-                                            <div className="flex w-[100px] items-center justify-center gap-2">
+                                            <div className="flex w-[100px] items-center justify-center">
                                                 <span
                                                     className="inline-block rounded-xl px-3 py-[2.5px] text-[11px] leading-[16.5px] font-bold"
                                                     style={{
@@ -223,7 +344,7 @@ export default function VerifikasiBerkas() {
                                             </div>
 
                                             {/* Aksi */}
-                                            <div className="flex w-[80px] items-center justify-center text-center">
+                                            <div className="flex w-[80px] items-center justify-start gap-2">
                                                 {status === 'verified' && (
                                                     <>
                                                         <ActionBtn>
@@ -235,7 +356,10 @@ export default function VerifikasiBerkas() {
                                                     </>
                                                 )}
                                                 {status === 'pending' && (
-                                                    <button className="inline-flex items-center gap-1 rounded bg-[#00236F] px-3 py-1 text-xs font-semibold tracking-[0.05em] text-white transition-colors hover:bg-[#001B59]">
+                                                    <button
+                                                        onClick={() => openVerifikasi(s)}
+                                                        className="inline-flex items-center gap-1 rounded bg-[#00236F] px-3 py-1 text-xs font-semibold tracking-[0.05em] text-white transition-colors hover:bg-[#001B59]"
+                                                    >
                                                         Verifikasi
                                                     </button>
                                                 )}
@@ -259,17 +383,15 @@ export default function VerifikasiBerkas() {
                         </p>
 
                         <div className="flex items-center gap-2">
-                            {/* Prev */}
                             <PageBtn disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
                                 <svg width="7.4" height="12" viewBox="0 0 8 12" fill="none">
                                     <path d="M7 1L2 6L7 11" stroke="currentColor" strokeWidth="1.5" />
                                 </svg>
                             </PageBtn>
 
-                            {/* Pages */}
                             {pageNumbers().map((page, i) =>
-                                page === -1 ? (
-                                    <span key={`ellipsis-${i}`} className="px-1 text-sm font-semibold text-[#444651]">
+                                page === 'ellipsis' ? (
+                                    <span key={`e-${i}`} className="px-1 text-sm font-semibold text-[#444651]">
                                         ...
                                     </span>
                                 ) : (
@@ -279,7 +401,6 @@ export default function VerifikasiBerkas() {
                                 ),
                             )}
 
-                            {/* Next */}
                             <PageBtn
                                 disabled={currentPage === totalPages || totalPages === 0}
                                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -296,10 +417,14 @@ export default function VerifikasiBerkas() {
     );
 }
 
-/* ── Reusable Sub-components ── */
+/* ── Reusable Components ── */
 
-function ActionBtn({ children }: { children: React.ReactNode }) {
-    return <button className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-[#F2F4F6]">{children}</button>;
+function ActionBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+    return (
+        <button onClick={onClick} className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-[#F2F4F6]">
+            {children}
+        </button>
+    );
 }
 
 function PageBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void }) {

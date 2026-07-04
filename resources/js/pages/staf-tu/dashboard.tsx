@@ -14,14 +14,14 @@ interface SiswaItem {
     nama_siswa: string;
     jurusan: string;
     kelas: string;
-    penilaian_beasiswa?: { nilai_akhir?: number; ranking?: number } | null;
+    penilaian_beasiswa?: { nilai_akhir_vi?: number; ranking?: number } | null;
 }
 
 export default function StafTUDashboard() {
     const { siswa } = usePage<{ siswa: SiswaItem[] }>().props;
 
     const totalPendaftar = siswa?.length || 0;
-    const terverifikasi = siswa?.filter((s) => s.penilaian_beasiswa?.nilai_akhir).length || 0;
+    const terverifikasi = siswa?.filter((s) => s.penilaian_beasiswa?.nilai_akhir_vi).length || 0;
     const belumVerifikasi = totalPendaftar - terverifikasi;
 
     return (
@@ -105,7 +105,7 @@ export default function StafTUDashboard() {
                                 const avatarColors = ['#DCE1FF', '#DAE2FD', '#D3E4FE', '#FEF3C7', '#D1FAE5'];
                                 const avatarColor = avatarColors[idx % avatarColors.length];
                                 const textColor = ['#00164E', '#131B2E', '#0B1C30', '#92400E', '#065F46'][idx % 5];
-                                const hasNilai = s.penilaian_beasiswa?.nilai_akhir != null;
+                                const hasNilai = s.penilaian_beasiswa?.nilai_akhir_vi != null;
 
                                 return (
                                     <div
@@ -141,7 +141,7 @@ export default function StafTUDashboard() {
                                         </div>
                                         <div className="flex w-[100px] items-center justify-center">
                                             <span className="text-sm leading-[21px] font-bold text-[#00236F]">
-                                                {hasNilai ? s.penilaian_beasiswa!.nilai_akhir!.toFixed(3) : '-'}
+                                                {hasNilai ? s.penilaian_beasiswa!.nilai_akhir_vi!.toFixed(3) : '-'}
                                             </span>
                                         </div>
                                         <div className="flex w-[80px] items-center justify-end gap-2">
