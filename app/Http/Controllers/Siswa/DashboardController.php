@@ -14,7 +14,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user()->load('siswa');
+        $user = $request->user()->load('siswa.penilaianBeasiswa');
 
         return Inertia::render('siswa/dashboard', [
             'siswa' => $user->siswa,

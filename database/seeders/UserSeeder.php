@@ -39,6 +39,8 @@ class UserSeeder extends Seeder
             ['nisn' => '0094857612', 'nama_siswa' => 'Gita Permata', 'jurusan' => 'Multimedia', 'email' => 'gita@smk.test'],
             ['nisn' => '0085948372', 'nama_siswa' => 'Hadi Saputra', 'jurusan' => 'Otomotif', 'email' => 'hadi@smk.test'],
             ['nisn' => '0095867713', 'nama_siswa' => 'Indah Sari', 'jurusan' => 'Rekayasa Perangkat Lunak', 'email' => 'indah@smk.test'],
+            // Siswa tanpa penilaian (belum daftar)
+            ['nisn' => '0096871234', 'nama_siswa' => 'Rizky Pratama', 'jurusan' => 'Teknik Komputer & Jaringan', 'email' => 'rizky@smk.test'],
         ];
 
         foreach ($siswaData as $s) {

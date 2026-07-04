@@ -25,17 +25,46 @@ class PenilaianSeeder extends Seeder
             ['c1' => 86, 'c2' => 32, 'c3' => 45, 'c4' => 78, 'c5' => 9],
         ];
 
+        // Status assignments:
+        // Index 0-2 → Lolos (approved, ranking 1-3)
+        // Index 3   → Tidak Lolos (approved, ranking 26)
+        // Index 4-8 → Verifikasi (pending, no approval)
+        // Index 9   → Tidak dibuat (Rizky - belum daftar)
+
+        $statuses = [
+            0 => ['status_approval' => 'approved', 'nilai_akhir_vi' => 0.954, 'ranking' => 1],
+            1 => ['status_approval' => 'approved', 'nilai_akhir_vi' => 0.932, 'ranking' => 2],
+            2 => ['status_approval' => 'approved', 'nilai_akhir_vi' => 0.911, 'ranking' => 3],
+            3 => ['status_approval' => 'approved', 'nilai_akhir_vi' => 0.887, 'ranking' => 26],
+            4 => ['status_approval' => 'pending',  'nilai_akhir_vi' => null,  'ranking' => null],
+            5 => ['status_approval' => 'pending',  'nilai_akhir_vi' => null,  'ranking' => null],
+            6 => ['status_approval' => 'pending',  'nilai_akhir_vi' => null,  'ranking' => null],
+            7 => ['status_approval' => 'pending',  'nilai_akhir_vi' => null,  'ranking' => null],
+            8 => ['status_approval' => 'pending',  'nilai_akhir_vi' => null,  'ranking' => null],
+            // 9 = skipped (rizky)
+        ];
+
         foreach ($siswas as $index => $siswa) {
-            if (isset($nilai[$index])) {
-                PenilaianBeasiswa::create([
-                    'siswa_id' => $siswa->id,
-                    'c1_nilai' => $nilai[$index]['c1'],
-                    'c2_nilai' => $nilai[$index]['c2'],
-                    'c3_nilai' => $nilai[$index]['c3'],
-                    'c4_nilai' => $nilai[$index]['c4'],
-                    'c5_nilai' => $nilai[$index]['c5'],
-                ]);
+            if (!isset($nilai[$index]) || !isset($statuses[$index])) {
+                continue;
             }
+
+            $s = $statuses[$index];
+            $n = $nilai[$index];
+
+            PenilaianBeasiswa::create([
+                'siswa_id' => $siswa->id,
+                'c1_nilai' => $n['c1'],
+                'c2_nilai' => $n['c2'],
+                'c3_nilai' => $n['c3'],
+                'c4_nilai' => $n['c4'],
+                'c5_nilai' => $n['c5'],
+                'nilai_akhir_vi' => $s['nilai_akhir_vi'],
+                'ranking' => $s['ranking'],
+                'status_approval' => $s['status_approval'],
+                'approved_by' => $s['status_approval'] === 'approved' ? 1 : null,
+                'approved_at' => $s['status_approval'] === 'approved' ? now() : null,
+            ]);
         }
     }
 }
