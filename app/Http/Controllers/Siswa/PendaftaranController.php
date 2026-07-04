@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\BerkasSiswa;
+use App\Models\PenilaianBeasiswa;
 use App\Models\Siswa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,30 +18,71 @@ class PendaftaranController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user()->load('siswa');
+        $user = $request->user()->load('siswa.penilaianBeasiswa');
+
+        if ($user->siswa && $user->siswa->penilaianBeasiswa) {
+            return Inertia::render('siswa/pendaftaran', [
+                'siswa' => $user->siswa,
+                'sudah_daftar' => true,
+            ]);
+        }
 
         return Inertia::render('siswa/pendaftaran', [
             'siswa' => $user->siswa,
+            'sudah_daftar' => false,
         ]);
     }
 
     /**
-     * Store the pendaftaran data.
+     * Store the pendaftaran data (data diri + kriteria + berkas).
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = $request->user();
+        $siswa = $user->siswa;
+
+        if (!$siswa) {
+            return redirect()->route('siswa.pendaftaran')
+                ->with('error', 'Data siswa tidak ditemukan. Silakan hubungi Staf TU.');
+        }
+
+        // Validasi
         $validated = $request->validate([
-            'nisn' => 'required|string|max:20|unique:siswa,nisn',
-            'nama_siswa' => 'required|string|max:100',
-            'jurusan' => 'required|string|max:50',
-            'kelas' => 'required|string|max:20',
+            'c1_rapor' => 'required|numeric|min:0|max:100',
+            'c2_penghasilan' => 'required|numeric|min:0|max:999999999',
+            'c3_tanggungan' => 'required|numeric|min:0|max:100',
+            'c4_prestasi' => 'required|numeric|min:1|max:5',
+            'berkas_kk' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        $validated['user_id'] = $request->user()->id;
+        // Simpan C1-C4 ke penilaian_beasiswa (C5 default 0)
+        PenilaianBeasiswa::updateOrCreate(
+            ['siswa_id' => $siswa->id],
+            [
+                'c1_nilai' => $validated['c1_rapor'],
+                'c2_nilai' => $validated['c2_penghasilan'],
+                'c3_nilai' => $validated['c3_tanggungan'],
+                'c4_nilai' => $validated['c4_prestasi'],
+                'c5_nilai' => 0,
+                'status_approval' => 'pending',
+            ]
+        );
 
-        Siswa::create($validated);
+        // Simpan berkas KK
+        if ($request->hasFile('berkas_kk')) {
+            $file = $request->file('berkas_kk');
+            $path = $file->store('berkas/' . $siswa->id, 'public');
+
+            BerkasSiswa::updateOrCreate(
+                ['siswa_id' => $siswa->id, 'nama_berkas' => 'Kartu Keluarga'],
+                [
+                    'file_path' => $path,
+                    'status_verifikasi' => 'pending',
+                ]
+            );
+        }
 
         return redirect()->route('siswa.dashboard')
-            ->with('success', 'Pendaftaran berhasil disimpan.');
+            ->with('success', 'Pendaftaran berhasil disimpan. Berkas Anda akan diverifikasi oleh Staf TU.');
     }
 }

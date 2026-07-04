@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Kepala Sekolah
-        $kepsek = User::create([
+        User::create([
             'name' => 'Drs. H. Mulyadi, M.Pd',
             'email' => 'kepsek@smk.test',
             'password' => Hash::make('password'),
@@ -20,27 +20,20 @@ class UserSeeder extends Seeder
         ]);
 
         // Staf TU
-        $tu = User::create([
+        User::create([
             'name' => 'Admin TU',
             'email' => 'tu@smk.test',
             'password' => Hash::make('password'),
             'role' => 'staf_tu',
         ]);
 
-        // 5 Siswa — semuanya kelas 10
+        // 5 Siswa — belum daftar beasiswa
         $siswaData = [
-            ['nisn' => '0082716253', 'nama_siswa' => 'Ahmad Sulaiman', 'jurusan' => 'Teknik Komputer & Jaringan', 'email' => 'ahmad@smk.test'],
-            ['nisn' => '0091827364', 'nama_siswa' => 'Siti Aminah', 'jurusan' => 'Rekayasa Perangkat Lunak', 'email' => 'siti@smk.test'],
-            ['nisn' => '0081726354', 'nama_siswa' => 'Budi Dermawan', 'jurusan' => 'Multimedia', 'email' => 'budi@smk.test'],
-            ['nisn' => '0092837465', 'nama_siswa' => 'Citra Lestari', 'jurusan' => 'Otomotif', 'email' => 'citra@smk.test'],
-            ['nisn' => '0083928172', 'nama_siswa' => 'Dedi Kurniawan', 'jurusan' => 'Teknik Komputer & Jaringan', 'email' => 'dedi@smk.test'],
-            ['nisn' => '0093847561', 'nama_siswa' => 'Eka Putri', 'jurusan' => 'Rekayasa Perangkat Lunak', 'email' => 'eka@smk.test'],
-            ['nisn' => '0084938271', 'nama_siswa' => 'Fajar Ramadhan', 'jurusan' => 'Teknik Komputer & Jaringan', 'email' => 'fajar@smk.test'],
-            ['nisn' => '0094857612', 'nama_siswa' => 'Gita Permata', 'jurusan' => 'Multimedia', 'email' => 'gita@smk.test'],
-            ['nisn' => '0085948372', 'nama_siswa' => 'Hadi Saputra', 'jurusan' => 'Otomotif', 'email' => 'hadi@smk.test'],
-            ['nisn' => '0095867713', 'nama_siswa' => 'Indah Sari', 'jurusan' => 'Rekayasa Perangkat Lunak', 'email' => 'indah@smk.test'],
-            // Siswa tanpa penilaian (belum daftar)
             ['nisn' => '0096871234', 'nama_siswa' => 'Rizky Pratama', 'jurusan' => 'Teknik Komputer & Jaringan', 'email' => 'rizky@smk.test'],
+            ['nisn' => '0096871235', 'nama_siswa' => 'Ahmad Fauzi', 'jurusan' => 'Rekayasa Perangkat Lunak', 'email' => 'ahmad@smk.test'],
+            ['nisn' => '0096871236', 'nama_siswa' => 'Siti Nurhaliza', 'jurusan' => 'Multimedia', 'email' => 'siti@smk.test'],
+            ['nisn' => '0096871237', 'nama_siswa' => 'Budi Santoso', 'jurusan' => 'Otomotif', 'email' => 'budi@smk.test'],
+            ['nisn' => '0096871238', 'nama_siswa' => 'Dewi Lestari', 'jurusan' => 'Rekayasa Perangkat Lunak', 'email' => 'dewi@smk.test'],
         ];
 
         foreach ($siswaData as $s) {
@@ -59,8 +52,5 @@ class UserSeeder extends Seeder
                 'user_id' => $user->id,
             ]);
         }
-
-        // Also create siswa entries for ahmad & siti that already have user accounts
-        // (they are already created above)
     }
 }
