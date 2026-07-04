@@ -9,7 +9,6 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npx tailwindcss --version
 
 RUN npm run build && npm run build:ssr
 
