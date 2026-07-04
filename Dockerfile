@@ -61,13 +61,7 @@ COPY --from=node-builder /app /var/www/html
 
 # Remove dev dependencies & non-prod files
 RUN rm -rf node_modules resources/js resources/css \
-    && composer install --no-dev --optimize-autoloader --no-interaction \
-    && php artisan optimize:clear \
-    && php artisan optimize \
-    && php artisan view:cache \
-    && php artisan route:cache \
-    && php artisan config:cache \
-    && php artisan event:cache
+    && composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
