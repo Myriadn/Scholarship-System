@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: skripsi-ridho:latest
+    container_name: skripsi_ridho
+    restart: unless-stopped
+    ports:
+      - '9002:80'
+    env_file:
+      - .env
+    networks:
+      - jobless
+
+networks:
+  jobless:
+    external: true
