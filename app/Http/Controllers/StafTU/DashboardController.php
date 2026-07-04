@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\StafTU;
 
 use App\Http\Controllers\Controller;
+use App\Models\BerkasSiswa;
 use App\Models\PenilaianBeasiswa;
 use App\Models\Siswa;
-use App\Services\SmartService;
 use App\Models\User;
+use App\Services\SmartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -48,7 +49,7 @@ class DashboardController extends Controller
      */
     public function verifikasiBerkas(Request $request): Response
     {
-        $siswa = Siswa::with('penilaianBeasiswa')->get();
+        $siswa = Siswa::with(['penilaianBeasiswa', 'berkasSiswa'])->get();
 
         return Inertia::render('staf-tu/verifikasi-berkas', [
             'siswa' => $siswa,
@@ -62,10 +63,9 @@ class DashboardController extends Controller
     {
         $siswa = Siswa::findOrFail($id);
 
-        // Hapus penilaian terkait
         $siswa->penilaianBeasiswa()->delete();
+        $siswa->berkasSiswa()->delete();
 
-        // Hapus user terkait
         if ($siswa->user_id) {
             User::where('id', $siswa->user_id)->delete();
         }
@@ -110,42 +110,46 @@ class DashboardController extends Controller
     }
 
     /**
-     * Verify a student's berkas, save C1-C5, and auto-run SMART.
+     * Download a student's berkas file.
+     */
+    public function downloadBerkas(int $id)
+    {
+        $berkas = BerkasSiswa::findOrFail($id);
+
+        $path = storage_path('app/public/' . $berkas->file_path);
+
+        if (!file_exists($path)) {
+            return redirect()->back()->with('error', 'File tidak ditemukan.');
+        }
+
+        return response()->file($path);
+    }
+
+    /**
+     * Verify a student's berkas and auto-run SMART.
      */
     public function verifikasi(Request $request, SmartService $smartService): RedirectResponse
     {
         $validated = $request->validate([
             'siswa_id' => 'required|exists:siswa,id',
-            'c1_nilai' => 'required|numeric|min:0|max:100',
-            'c2_nilai' => 'required|numeric|min:0|max:100',
-            'c3_nilai' => 'required|numeric|min:0|max:100',
-            'c4_nilai' => 'required|numeric|min:0|max:100',
-            'c5_nilai' => 'required|numeric|min:0|max:100',
+            'status' => 'required|in:verified,rejected',
         ]);
 
-        // Cari atau buat penilaian_beasiswa untuk siswa ini
-        $penilaian = PenilaianBeasiswa::updateOrCreate(
-            ['siswa_id' => $validated['siswa_id']],
-            [
-                'c1_nilai' => $validated['c1_nilai'],
-                'c2_nilai' => $validated['c2_nilai'],
-                'c3_nilai' => $validated['c3_nilai'],
-                'c4_nilai' => $validated['c4_nilai'],
-                'c5_nilai' => $validated['c5_nilai'],
-                'status_approval' => 'pending',
-            ]
-        );
+        // Update status verifikasi berkas
+        BerkasSiswa::where('siswa_id', $validated['siswa_id'])
+            ->update(['status_verifikasi' => $validated['status']]);
 
-        // Auto-run SMART: hitung ulang semua siswa
-        try {
-            $smartService->prosesLengkap();
-        } catch (\Exception $e) {
-            return redirect()->route('staf-tu.verifikasi-berkas')
-                ->with('error', 'Data tersimpan tapi gagal proses SMART: ' . $e->getMessage());
+        if ($validated['status'] === 'verified') {
+            try {
+                $smartService->prosesLengkap();
+            } catch (\Exception $e) {
+                return redirect()->route('staf-tu.verifikasi-berkas')
+                    ->with('error', 'Berkas terverifikasi tapi gagal proses SMART: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('staf-tu.verifikasi-berkas')
-            ->with('success', 'Siswa berhasil diverifikasi. Perhitungan SMART otomatis diperbarui.');
+            ->with('success', 'Berkas siswa berhasil ' . ($validated['status'] === 'verified' ? 'diverifikasi' : 'ditolak') . '.');
     }
 
     /**

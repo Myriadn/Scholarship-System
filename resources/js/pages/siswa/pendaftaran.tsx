@@ -2,18 +2,22 @@ import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
 import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { CheckCircle, ClipboardList, Send, Upload, User } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/siswa/dashboard' },
     { title: 'Beasiswa Saya', href: '/siswa/pendaftaran' },
 ];
 
-const jurusanOptions = ['Teknik Komputer & Jaringan', 'Teknik Kendaraan Ringan', 'Teknik Sepeda Motor', 'Akuntansi', 'Administrasi Perkantoran'];
-
-const kelasOptions = ['X (Sepuluh)', 'XI (Sebelas)', 'XII (Dua Belas)'];
+interface SiswaData {
+    id: number;
+    nisn: string;
+    nama_siswa: string;
+    jurusan: string;
+    kelas: string;
+}
 
 const prestasiOptions = [
     { value: '1', label: '1 - Tidak Ada' },
@@ -25,14 +29,23 @@ const prestasiOptions = [
 
 export default function Pendaftaran() {
     const { auth } = usePage<SharedData>().props;
+    const { siswa } = usePage<{ siswa: SiswaData | null }>().props;
     const user = auth.user;
     const [showSuccess, setShowSuccess] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        nisn: '',
-        nama: user.name || '',
-        jurusan: '',
-        kelas: '',
+    // File states
+    const [fileKK, setFileKK] = useState<File | null>(null);
+    const [fileRapor, setFileRapor] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+
+    const kkRef = useRef<HTMLInputElement>(null);
+    const raporRef = useRef<HTMLInputElement>(null);
+
+    const { data, setData, processing, errors, reset } = useForm({
+        nisn: siswa?.nisn || '',
+        nama: siswa?.nama_siswa || user.name || '',
+        jurusan: siswa?.jurusan || '',
+        kelas: siswa?.kelas || '',
         c1_rapor: '',
         c2_penghasilan: '',
         c3_tanggungan: '',
@@ -41,13 +54,39 @@ export default function Pendaftaran() {
         agreement: false,
     });
 
+    const formatRupiah = (value: string) => {
+        const angka = value.replace(/\D/g, '');
+        if (!angka) return '';
+        return 'Rp ' + angka.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
+    const handlePenghasilan = (value: string) => {
+        const angka = value.replace(/[^\d]/g, '');
+        setData('c2_penghasilan', angka);
+    };
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('siswa.pendaftaran.store'), {
+        setUploading(true);
+
+        const formData = new FormData();
+        formData.append('c1_rapor', data.c1_rapor);
+        formData.append('c2_penghasilan', data.c2_penghasilan);
+        formData.append('c3_tanggungan', data.c3_tanggungan);
+        formData.append('c4_prestasi', data.c4_prestasi);
+        formData.append('c5_absensi', data.c5_absensi);
+        if (fileKK) formData.append('berkas_kk', fileKK);
+        if (fileRapor) formData.append('berkas_rapor', fileRapor);
+
+        router.post(route('siswa.pendaftaran.store'), formData, {
             onSuccess: () => {
                 setShowSuccess(true);
+                setUploading(false);
                 reset();
+                setFileKK(null);
+                setFileRapor(null);
             },
+            onError: () => setUploading(false),
         });
     };
 
@@ -65,12 +104,12 @@ export default function Pendaftaran() {
                     </p>
                 </div>
 
-                {/* ── Form Grid ── */}
-                <form onSubmit={submit}>
+                {/* ── Form ── */}
+                <form onSubmit={submit} encType="multipart/form-data">
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-                        {/* ── Left Column: Personal Data + Kriteria ── */}
+                        {/* ── Left Column ── */}
                         <div className="flex flex-col gap-8 lg:col-span-7">
-                            {/* Section: Data Pribadi */}
+                            {/* Section: Data Pribadi (read-only, dari database) */}
                             <div className="flex flex-col gap-6 rounded-lg border border-[#E2E8F0] bg-white p-8">
                                 <div className="flex items-center gap-3 border-b border-[#E2E8F0] pb-4">
                                     <User className="h-4 w-4 text-[#00236F]" />
@@ -84,11 +123,9 @@ export default function Pendaftaran() {
                                         <input
                                             type="text"
                                             value={data.nisn}
-                                            onChange={(e) => setData('nisn', e.target.value)}
-                                            placeholder="001234455"
-                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                            disabled
+                                            className="w-full rounded border border-[#C5C5D3] bg-[#ECEEF0] px-3 py-3 text-sm text-[#6B7280] outline-none"
                                         />
-                                        <InputError message={errors.nisn} />
                                     </div>
 
                                     {/* Nama Lengkap */}
@@ -97,47 +134,31 @@ export default function Pendaftaran() {
                                         <input
                                             type="text"
                                             value={data.nama}
-                                            onChange={(e) => setData('nama', e.target.value)}
-                                            placeholder="Ahmad Fauzi"
-                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                            disabled
+                                            className="w-full rounded border border-[#C5C5D3] bg-[#ECEEF0] px-3 py-3 text-sm text-[#6B7280] outline-none"
                                         />
-                                        <InputError message={errors.nama} />
                                     </div>
 
                                     {/* Jurusan */}
                                     <div className="flex flex-col gap-3">
                                         <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Jurusan</label>
-                                        <select
+                                        <input
+                                            type="text"
                                             value={data.jurusan}
-                                            onChange={(e) => setData('jurusan', e.target.value)}
-                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] opacity-70 transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
-                                        >
-                                            <option value="">Pilih Jurusan</option>
-                                            {jurusanOptions.map((j) => (
-                                                <option key={j} value={j}>
-                                                    {j}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError message={errors.jurusan} />
+                                            disabled
+                                            className="w-full rounded border border-[#C5C5D3] bg-[#ECEEF0] px-3 py-3 text-sm text-[#6B7280] outline-none"
+                                        />
                                     </div>
 
                                     {/* Kelas */}
                                     <div className="flex flex-col gap-3">
                                         <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Kelas</label>
-                                        <select
+                                        <input
+                                            type="text"
                                             value={data.kelas}
-                                            onChange={(e) => setData('kelas', e.target.value)}
-                                            className="rounded border border-[#C5C5D3] bg-[#F2F4F6] px-3 py-3 text-sm text-[#191C1E] opacity-70 transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
-                                        >
-                                            <option value="">Pilih Kelas</option>
-                                            {kelasOptions.map((k) => (
-                                                <option key={k} value={k}>
-                                                    {k}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError message={errors.kelas} />
+                                            disabled
+                                            className="w-full rounded border border-[#C5C5D3] bg-[#ECEEF0] px-3 py-3 text-sm text-[#6B7280] outline-none"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -150,7 +171,7 @@ export default function Pendaftaran() {
                                 </div>
 
                                 <div className="flex flex-col gap-6">
-                                    {/* C1: Nilai Rapor */}
+                                    {/* C1 */}
                                     <KriteriaField
                                         label="Nilai Rata-rata Rapor"
                                         hint="Masukan nilai 0-100"
@@ -160,17 +181,27 @@ export default function Pendaftaran() {
                                         error={errors.c1_rapor}
                                     />
 
-                                    {/* C2: Penghasilan */}
-                                    <KriteriaField
-                                        label="Penghasilan Orang Tua"
-                                        hint="Rata-rata per bulan (Rp)"
-                                        value={data.c2_penghasilan}
-                                        onChange={(v) => setData('c2_penghasilan', v)}
-                                        placeholder="2000000"
-                                        error={errors.c2_penghasilan}
-                                    />
+                                    {/* C2 — dengan format Rp */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex w-[237px] flex-col gap-1.5 pt-0.5">
+                                            <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">
+                                                Penghasilan Orang Tua
+                                            </label>
+                                            <p className="text-xs leading-4 text-[#505F76]/70">Rata-rata per bulan (Rp)</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="text"
+                                                value={formatRupiah(data.c2_penghasilan)}
+                                                onChange={(e) => handlePenghasilan(e.target.value)}
+                                                placeholder="Rp 2.000.000"
+                                                className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-3 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                                            />
+                                            <InputError message={errors.c2_penghasilan} />
+                                        </div>
+                                    </div>
 
-                                    {/* C3: Tanggungan */}
+                                    {/* C3 */}
                                     <KriteriaField
                                         label="Jumlah Tanggungan"
                                         hint="Jumlah anak/anggota keluarga"
@@ -180,7 +211,7 @@ export default function Pendaftaran() {
                                         error={errors.c3_tanggungan}
                                     />
 
-                                    {/* C4: Prestasi */}
+                                    {/* C4 */}
                                     <div className="flex items-start gap-4">
                                         <div className="flex w-[237px] flex-col gap-1.5 pt-0.5">
                                             <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">
@@ -205,28 +236,20 @@ export default function Pendaftaran() {
                                         </div>
                                     </div>
 
-                                    {/* C5: Absensi */}
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex w-[237px] flex-col">
-                                            <label className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Absensi</label>
-                                            <p className="text-xs leading-4 text-[#505F76]/70">Semakin tinggi angka = semakin banyak absen</p>
-                                        </div>
-                                        <div className="flex-1">
-                                            <input
-                                                type="text"
-                                                value={data.c5_absensi}
-                                                onChange={(e) => setData('c5_absensi', e.target.value)}
-                                                placeholder="5.2"
-                                                className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-3 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
-                                            />
-                                            <InputError message={errors.c5_absensi} />
-                                        </div>
-                                    </div>
+                                    {/* C5 */}
+                                    <KriteriaField
+                                        label="Absensi"
+                                        hint="Semakin tinggi angka = semakin banyak absen"
+                                        value={data.c5_absensi}
+                                        onChange={(v) => setData('c5_absensi', v)}
+                                        placeholder="5.2"
+                                        error={errors.c5_absensi}
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        {/* ── Right Column: Upload + Action ── */}
+                        {/* ── Right Column ── */}
                         <div className="flex flex-col gap-8 lg:col-span-5">
                             {/* Section: Unggah Berkas */}
                             <div className="flex flex-col gap-6 rounded-lg border border-[#E2E8F0] bg-white p-8">
@@ -237,10 +260,36 @@ export default function Pendaftaran() {
 
                                 <div className="flex flex-col gap-6">
                                     {/* Upload 1: Kartu Keluarga */}
-                                    <UploadZone label="Scan Kartu Keluarga (PDF/JPG)" maxSize="Maksimal 2MB" />
+                                    <UploadZone
+                                        label="Scan Kartu Keluarga (PDF/JPG)"
+                                        maxSize="Maksimal 2MB"
+                                        file={fileKK}
+                                        onChoose={() => kkRef.current?.click()}
+                                        onRemove={() => setFileKK(null)}
+                                    />
+                                    <input
+                                        ref={kkRef}
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        className="hidden"
+                                        onChange={(e) => setFileKK(e.target.files?.[0] || null)}
+                                    />
 
                                     {/* Upload 2: Rapor */}
-                                    <UploadZone label="Scan Rapor Terakhir (PDF)" maxSize="Maksimal 5MB" />
+                                    <UploadZone
+                                        label="Scan Rapor Terakhir (PDF)"
+                                        maxSize="Maksimal 5MB"
+                                        file={fileRapor}
+                                        onChoose={() => raporRef.current?.click()}
+                                        onRemove={() => setFileRapor(null)}
+                                    />
+                                    <input
+                                        ref={raporRef}
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        className="hidden"
+                                        onChange={(e) => setFileRapor(e.target.files?.[0] || null)}
+                                    />
 
                                     {/* Info Box */}
                                     <div className="rounded-r border-l-4 border-[#3B82F6] bg-[#3B82F6]/10 p-4">
@@ -259,7 +308,6 @@ export default function Pendaftaran() {
                                     Pastikan seluruh data sudah benar. Setelah dikirim, Anda tidak dapat mengubah data ini secara mandiri.
                                 </p>
 
-                                {/* Agreement */}
                                 <label className="flex cursor-pointer items-start gap-3 py-4">
                                     <Checkbox
                                         checked={data.agreement}
@@ -272,13 +320,12 @@ export default function Pendaftaran() {
                                 </label>
                                 <InputError message={errors.agreement} />
 
-                                {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    disabled={processing}
+                                    disabled={processing || uploading}
                                     className="flex w-full items-center justify-center gap-2 rounded bg-white px-4 py-4 text-base font-bold text-[#00236F] transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                    {processing ? (
+                                    {processing || uploading ? (
                                         'Mengirim...'
                                     ) : (
                                         <>
@@ -317,7 +364,7 @@ export default function Pendaftaran() {
     );
 }
 
-/* ── Reusable Components ── */
+/* ── Komponen Pembantu ── */
 
 function KriteriaField({
     label,
@@ -354,15 +401,45 @@ function KriteriaField({
     );
 }
 
-function UploadZone({ label, maxSize }: { label: string; maxSize: string }) {
+function UploadZone({
+    label,
+    maxSize,
+    file,
+    onChoose,
+    onRemove,
+}: {
+    label: string;
+    maxSize: string;
+    file: File | null;
+    onChoose: () => void;
+    onRemove: () => void;
+}) {
     return (
         <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">{label}</p>
-            <div className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded border-2 border-dashed border-[#C5C5D3] bg-[#F7F9FB] px-6 py-6 text-center transition-colors hover:border-[#00236F] hover:bg-[#F2F4F6]">
-                <Upload className="h-5 w-4 text-[#757682]" />
-                <p className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Klik untuk pilih file atau drag & drop</p>
-                <p className="text-[10px] leading-[15px] text-[#757682]">{maxSize}</p>
-            </div>
+            {file ? (
+                <div className="flex items-center justify-between rounded border border-[#10B981] bg-[#10B981]/5 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <Upload className="h-5 w-5 text-[#10B981]" />
+                        <div>
+                            <p className="text-sm font-medium text-[#191C1E]">{file.name}</p>
+                            <p className="text-xs text-[#6B7280]">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                    </div>
+                    <button type="button" onClick={onRemove} className="text-sm text-[#EF4444] hover:underline">
+                        Hapus
+                    </button>
+                </div>
+            ) : (
+                <div
+                    onClick={onChoose}
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded border-2 border-dashed border-[#C5C5D3] bg-[#F7F9FB] px-6 py-6 text-center transition-colors hover:border-[#00236F] hover:bg-[#F2F4F6]"
+                >
+                    <Upload className="h-5 w-4 text-[#757682]" />
+                    <p className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">Klik untuk pilih file atau drag & drop</p>
+                    <p className="text-[10px] leading-[15px] text-[#757682]">{maxSize}</p>
+                </div>
+            )}
         </div>
     );
 }

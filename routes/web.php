@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('siswa/store', [StafTUDashboardController::class, 'storeSiswa'])->name('siswa.store');
             Route::post('siswa/delete/{id}', [StafTUDashboardController::class, 'deleteSiswa'])->name('siswa.delete');
             Route::post('verifikasi', [StafTUDashboardController::class, 'verifikasi'])->name('verifikasi');
+            Route::get('berkas/download/{id}', [StafTUDashboardController::class, 'downloadBerkas'])->name('berkas.download');
             Route::post('proses-smart', [StafTUDashboardController::class, 'prosesHitung'])->name('proses-smart');
         });
 

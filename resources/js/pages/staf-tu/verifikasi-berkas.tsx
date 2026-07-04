@@ -1,8 +1,8 @@
 import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Download, Edit2, Eye, Search, X } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { Download, Edit2, Eye, FileText, Search, X } from 'lucide-react';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/staf-tu/dashboard' },
@@ -10,9 +10,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Penilaian {
+    c1_nilai?: number;
+    c2_nilai?: number;
+    c3_nilai?: number;
+    c4_nilai?: number;
+    c5_nilai?: number;
     nilai_akhir_vi?: number;
     ranking?: number;
     status_approval?: string;
+}
+
+interface BerkasItem {
+    id: number;
+    nama_berkas: string;
+    file_path: string;
+    status_verifikasi: string;
 }
 
 interface SiswaItem {
@@ -22,6 +34,7 @@ interface SiswaItem {
     jurusan: string;
     kelas: string;
     penilaian_beasiswa?: Penilaian | null;
+    berkas_siswa?: BerkasItem[];
 }
 
 type StatusFilter = 'semua' | 'verified' | 'pending' | 'rejected';
@@ -34,21 +47,18 @@ const AVATAR_COLORS = [
     { bg: '#D1FAE5', text: '#065F46' },
 ];
 
+const formatRupiah = (angka?: number) => {
+    if (angka == null) return '-';
+    return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 export default function VerifikasiBerkas() {
     const { siswa } = usePage<{ siswa: SiswaItem[] }>().props;
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('semua');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedSiswa, setSelectedSiswa] = useState<SiswaItem | null>(null);
+    const [verifying, setVerifying] = useState(false);
     const perPage = 5;
-
-    const { data, setData, post, processing, errors, reset } = useForm({
-        siswa_id: 0,
-        c1_nilai: '',
-        c2_nilai: '',
-        c3_nilai: '',
-        c4_nilai: '',
-        c5_nilai: '',
-    });
 
     const getStatus = (s: SiswaItem): 'verified' | 'pending' | 'rejected' => {
         const pn = s.penilaian_beasiswa;
@@ -89,31 +99,26 @@ export default function VerifikasiBerkas() {
             .toUpperCase() || '--';
 
     const openVerifikasi = (s: SiswaItem) => {
-        reset();
-        setData('siswa_id', s.id);
-        // Pre-fill from existing penilaian if any
-        if (s.penilaian_beasiswa) {
-            const p = s.penilaian_beasiswa as Record<string, unknown>;
-            setData({
-                siswa_id: s.id,
-                c1_nilai: String(p.c1_nilai ?? ''),
-                c2_nilai: String(p.c2_nilai ?? ''),
-                c3_nilai: String(p.c3_nilai ?? ''),
-                c4_nilai: String(p.c4_nilai ?? ''),
-                c5_nilai: String(p.c5_nilai ?? ''),
-            });
-        }
         setSelectedSiswa(s);
     };
 
-    const handleVerifikasi: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(route('staf-tu.verifikasi'), {
-            onSuccess: () => {
-                setSelectedSiswa(null);
-                reset();
+    const handleVerifikasi = (status: 'verified' | 'rejected') => {
+        if (!selectedSiswa) return;
+        setVerifying(true);
+        router.post(
+            route('staf-tu.verifikasi'),
+            {
+                siswa_id: selectedSiswa.id,
+                status: status,
             },
-        });
+            {
+                onSuccess: () => {
+                    setSelectedSiswa(null);
+                    setVerifying(false);
+                },
+                onError: () => setVerifying(false),
+            },
+        );
     };
 
     const pageNumbers = () => {
@@ -143,18 +148,17 @@ export default function VerifikasiBerkas() {
             <Head title="Verifikasi Berkas Siswa" />
 
             <div className="flex flex-col gap-6 p-8">
-                {/* ── Page Header ── */}
                 <div className="flex flex-col gap-1">
                     <h1 className="text-[32px] leading-[38.4px] font-bold tracking-[-0.02em] text-[#00236F]">Verifikasi Berkas Siswa</h1>
                     <p className="text-sm leading-[21px] text-[#444651]">
-                        Kelola verifikasi berkas dan hitung skor akhir beasiswa menggunakan metode SMART.
+                        Periksa kelengkapan data dan berkas siswa. Setelah diverifikasi, sistem otomatis menghitung skor SMART.
                     </p>
                 </div>
 
                 {/* ── Modal Verifikasi ── */}
                 {selectedSiswa && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                        <div className="w-full max-w-lg rounded-lg border border-[#C5C5D3] bg-white shadow-lg">
+                        <div className="w-full max-w-xl rounded-lg border border-[#C5C5D3] bg-white shadow-lg">
                             {/* Header */}
                             <div className="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4">
                                 <div>
@@ -168,51 +172,105 @@ export default function VerifikasiBerkas() {
                                 </button>
                             </div>
 
-                            {/* Form */}
-                            <form onSubmit={handleVerifikasi} className="flex flex-col gap-5 px-6 py-6">
+                            <div className="flex flex-col gap-6 px-6 py-6">
                                 {/* Info Siswa */}
                                 <div className="rounded bg-[#F2F4F6] px-4 py-3">
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div className="grid grid-cols-3 gap-3 text-sm">
                                         <div>
                                             <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">NISN</span>
                                             <p className="font-medium text-[#191C1E]">{selectedSiswa.nisn}</p>
                                         </div>
                                         <div>
-                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Kelas</span>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">KELAS</span>
                                             <p className="font-medium text-[#191C1E]">{selectedSiswa.kelas}</p>
                                         </div>
                                         <div>
-                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Jurusan</span>
+                                            <span className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">JURUSAN</span>
                                             <p className="font-medium text-[#191C1E]">{selectedSiswa.jurusan}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Input C1-C5 */}
-                                <p className="text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Input Nilai Kriteria (C1–C5)</p>
-
-                                {[
-                                    { key: 'c1_nilai', label: 'C1 — Nilai Akademik', hint: 'Nilai rata-rata rapor (0–100)' },
-                                    { key: 'c2_nilai', label: 'C2 — Penghasilan Orang Tua', hint: 'Rata-rata per bulan dalam skala (0–100)' },
-                                    { key: 'c3_nilai', label: 'C3 — Jumlah Tanggungan', hint: 'Jumlah tanggungan dalam skala (0–100)' },
-                                    { key: 'c4_nilai', label: 'C4 — Prestasi', hint: 'Tingkat prestasi dalam skala (0–100)' },
-                                    { key: 'c5_nilai', label: 'C5 — Absensi', hint: 'Semakin tinggi = semakin banyak absen (0–100)' },
-                                ].map((field) => (
-                                    <div key={field.key} className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">{field.label}</label>
-                                        <p className="text-xs leading-4 text-[#505F76]/70">{field.hint}</p>
-                                        <input
-                                            type="text"
-                                            value={(data as unknown as Record<string, string>)[field.key]}
-                                            onChange={(e) => setData(field.key as keyof typeof data, e.target.value)}
-                                            placeholder="0"
-                                            className="w-full rounded border border-[#C5C5D3] bg-[#F7F9FB] px-3 py-2.5 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
-                                        />
-                                        {(errors as Record<string, string | undefined>)[field.key] && (
-                                            <p className="text-sm text-red-600">{(errors as Record<string, string | undefined>)[field.key]}</p>
-                                        )}
+                                {/* Nilai Kriteria */}
+                                <div>
+                                    <p class="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Nilai Kriteria</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
+                                            <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Nilai Akademik</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-[#191C1E]">
+                                                {selectedSiswa.penilaian_beasiswa?.c1_nilai ?? '-'}
+                                            </p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
+                                            <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Penghasilan Orang Tua</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-[#191C1E]">
+                                                {formatRupiah(selectedSiswa.penilaian_beasiswa?.c2_nilai)}
+                                            </p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
+                                            <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Jumlah Tanggungan</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-[#191C1E]">
+                                                {selectedSiswa.penilaian_beasiswa?.c3_nilai ?? '-'}
+                                            </p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
+                                            <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Prestasi</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-[#191C1E]">
+                                                {selectedSiswa.penilaian_beasiswa?.c4_nilai ?? '-'}
+                                            </p>
+                                        </div>
+                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
+                                            <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Absensi</p>
+                                            <p className="mt-0.5 text-sm font-semibold text-[#191C1E]">
+                                                {selectedSiswa.penilaian_beasiswa?.c5_nilai ?? '-'}
+                                            </p>
+                                        </div>
                                     </div>
-                                ))}
+                                </div>
+
+                                {/* Berkas yang diupload */}
+                                <div>
+                                    <p className="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Berkas Pendukung</p>
+                                    {!selectedSiswa.berkas_siswa || selectedSiswa.berkas_siswa.length === 0 ? (
+                                        <div className="rounded border border-dashed border-[#C5C5D3] bg-[#F9FAFB] px-4 py-4 text-center text-sm text-[#6B7280]">
+                                            Belum ada berkas yang diunggah.
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            {selectedSiswa.berkas_siswa.map((b) => (
+                                                <div
+                                                    key={b.id}
+                                                    className="flex items-center justify-between rounded border border-[#E2E8F0] bg-[#F9FAFB] px-4 py-2.5"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <FileText className="h-5 w-5 text-[#00236F]" />
+                                                        <p className="text-sm font-medium text-[#191C1E]">{b.nama_berkas}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span
+                                                            className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] leading-[14px] font-bold uppercase ${
+                                                                b.status_verifikasi === 'verified'
+                                                                    ? 'bg-[#10B981]/10 text-[#10B981]'
+                                                                    : b.status_verifikasi === 'rejected'
+                                                                      ? 'bg-[#EF4444]/10 text-[#EF4444]'
+                                                                      : 'bg-[#F59E0B]/10 text-[#F59E0B]'
+                                                            }`}
+                                                        >
+                                                            {b.status_verifikasi}
+                                                        </span>
+                                                        <a
+                                                            href={route('staf-tu.berkas.download', b.id)}
+                                                            target="_blank"
+                                                            className="text-xs font-semibold text-[#00236F] underline transition-colors hover:text-[#001B59]"
+                                                        >
+                                                            Lihat
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Actions */}
                                 <div className="flex items-center justify-end gap-3 border-t border-[#E2E8F0] pt-5">
@@ -224,28 +282,33 @@ export default function VerifikasiBerkas() {
                                         Batal
                                     </button>
                                     <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="rounded bg-[#00236F] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#001B59] disabled:cursor-not-allowed disabled:opacity-70"
+                                        onClick={() => handleVerifikasi('verified')}
+                                        disabled={verifying}
+                                        className="rounded bg-[#10B981] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#059669] disabled:cursor-not-allowed disabled:opacity-70"
                                     >
-                                        {processing ? 'Memproses...' : 'Verifikasi & Simpan'}
+                                        {verifying ? 'Memproses...' : '✓ Setujui'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleVerifikasi('rejected')}
+                                        disabled={verifying}
+                                        className="rounded bg-[#EF4444] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#DC2626] disabled:cursor-not-allowed disabled:opacity-70"
+                                    >
+                                        ✕ Tolak
                                     </button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 )}
 
-                {/* ── Table Section ── */}
+                {/* ── Table ── */}
                 <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
-                    {/* Filters Bar */}
                     <div className="flex flex-col items-start justify-between gap-4 border-b border-[#E2E8F0] bg-[#F2F4F6] px-4 py-3 sm:flex-row sm:items-center">
                         <div className="flex flex-wrap items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <Search className="h-[12px] w-[18px] text-[#444651]" />
                                 <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">FILTER:</span>
                             </div>
-
                             <select
                                 value={statusFilter}
                                 onChange={(e) => {
@@ -259,22 +322,14 @@ export default function VerifikasiBerkas() {
                                 <option value="pending">Pending</option>
                                 <option value="rejected">Rejected</option>
                             </select>
-
-                            <select className="rounded border border-[#C5C5D3] bg-white px-3 py-1.5 text-sm text-[#191C1E] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]">
-                                <option>Tahun 2024</option>
-                                <option>Tahun 2025</option>
-                            </select>
                         </div>
-
                         <button className="inline-flex items-center gap-2 rounded bg-[#505F76] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3D4A5E]">
                             <Download className="h-4 w-4" />
                             Ekspor .CSV
                         </button>
                     </div>
 
-                    {/* Table */}
                     <div className="overflow-x-auto">
-                        {/* Header */}
                         <div className="flex items-center bg-[#00236F] px-6 py-4">
                             <span className="w-[120px] text-xs font-semibold tracking-[0.05em] text-white uppercase">ID SISWA</span>
                             <span className="flex-1 text-xs font-semibold tracking-[0.05em] text-white uppercase">NAMA LENGKAP</span>
@@ -285,7 +340,6 @@ export default function VerifikasiBerkas() {
                             <span className="w-[80px] text-left text-xs font-semibold tracking-[0.05em] text-white uppercase">AKSI</span>
                         </div>
 
-                        {/* Body */}
                         {paginatedData.length === 0 ? (
                             <div className="px-6 py-16 text-center text-sm text-[#6B7280]">Belum ada data verifikasi.</div>
                         ) : (
@@ -297,15 +351,11 @@ export default function VerifikasiBerkas() {
                                     const status = getStatus(s);
                                     const style = statusStyle[status];
                                     const nilai = s.penilaian_beasiswa?.nilai_akhir_vi;
-
                                     return (
                                         <div key={s.id} className={`flex items-center px-6 py-3 transition-colors hover:bg-[#F8FAFC] ${rowBg}`}>
-                                            {/* ID */}
                                             <span className="w-[120px] font-mono text-[13px] leading-[19.5px] text-[#191C1E]">
                                                 #SMK-2024-{String(s.id).padStart(3, '0')}
                                             </span>
-
-                                            {/* Nama */}
                                             <div className="flex flex-1 items-center gap-3">
                                                 <div
                                                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
@@ -315,37 +365,23 @@ export default function VerifikasiBerkas() {
                                                 </div>
                                                 <span className="text-sm leading-[19.6px] font-semibold text-[#191C1E]">{s.nama_siswa}</span>
                                             </div>
-
-                                            {/* Kelas */}
                                             <span className="w-[100px] text-sm leading-[19.6px] text-[#444651]">{s.kelas || '-'}</span>
-
-                                            {/* Jurusan */}
                                             <span className="w-[120px] text-sm leading-[19.6px] text-[#444651]">{s.jurusan || '-'}</span>
-
-                                            {/* Status Badge */}
                                             <div className="flex w-[100px] items-center justify-center">
                                                 <span
                                                     className="inline-block rounded-xl px-3 py-[2.5px] text-[11px] leading-[16.5px] font-bold"
-                                                    style={{
-                                                        backgroundColor: style.bg,
-                                                        color: style.text,
-                                                        border: `1px solid ${style.border}`,
-                                                    }}
+                                                    style={{ backgroundColor: style.bg, color: style.text, border: `1px solid ${style.border}` }}
                                                 >
                                                     {getStatusLabel(s)}
                                                 </span>
                                             </div>
-
-                                            {/* Nilai Akhir */}
                                             <div className="flex w-[100px] items-center justify-center">
                                                 <span className="text-sm leading-[21px] font-bold text-[#00236F]">
                                                     {nilai != null ? nilai.toFixed(3) : '-'}
                                                 </span>
                                             </div>
-
-                                            {/* Aksi */}
                                             <div className="flex w-[80px] items-center justify-start gap-2">
-                                                {status === 'verified' && (
+                                                {status === 'verified' ? (
                                                     <>
                                                         <ActionBtn>
                                                             <Eye className="h-[15px] w-[22px] text-[#00236F]" />
@@ -354,19 +390,13 @@ export default function VerifikasiBerkas() {
                                                             <Edit2 className="h-5 w-[18px] text-[#444651]" />
                                                         </ActionBtn>
                                                     </>
-                                                )}
-                                                {status === 'pending' && (
+                                                ) : (
                                                     <button
                                                         onClick={() => openVerifikasi(s)}
                                                         className="inline-flex items-center gap-1 rounded bg-[#00236F] px-3 py-1 text-xs font-semibold tracking-[0.05em] text-white transition-colors hover:bg-[#001B59]"
                                                     >
                                                         Verifikasi
                                                     </button>
-                                                )}
-                                                {status === 'rejected' && (
-                                                    <ActionBtn>
-                                                        <Eye className="h-5 w-5 text-[#444651]" />
-                                                    </ActionBtn>
                                                 )}
                                             </div>
                                         </div>
@@ -376,19 +406,16 @@ export default function VerifikasiBerkas() {
                         )}
                     </div>
 
-                    {/* Pagination */}
                     <div className="flex flex-col items-center justify-between gap-4 border-t border-[#E2E8F0] bg-[#F2F4F6] px-4 py-3 sm:flex-row">
                         <p className="text-sm leading-[21px] text-[#444651]">
                             Menampilkan {startEntry}-{endEntry} dari {filteredData.length} data
                         </p>
-
                         <div className="flex items-center gap-2">
                             <PageBtn disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
                                 <svg width="7.4" height="12" viewBox="0 0 8 12" fill="none">
                                     <path d="M7 1L2 6L7 11" stroke="currentColor" strokeWidth="1.5" />
                                 </svg>
                             </PageBtn>
-
                             {pageNumbers().map((page, i) =>
                                 page === 'ellipsis' ? (
                                     <span key={`e-${i}`} className="px-1 text-sm font-semibold text-[#444651]">
@@ -400,7 +427,6 @@ export default function VerifikasiBerkas() {
                                     </PageBtn>
                                 ),
                             )}
-
                             <PageBtn
                                 disabled={currentPage === totalPages || totalPages === 0}
                                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -417,14 +443,8 @@ export default function VerifikasiBerkas() {
     );
 }
 
-/* ── Reusable Components ── */
-
-function ActionBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
-    return (
-        <button onClick={onClick} className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-[#F2F4F6]">
-            {children}
-        </button>
-    );
+function ActionBtn({ children }: { children: React.ReactNode }) {
+    return <button className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-[#F2F4F6]">{children}</button>;
 }
 
 function PageBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick?: () => void }) {
