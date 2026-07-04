@@ -7,7 +7,7 @@ services:
     container_name: skripsi_ridho
     restart: unless-stopped
     ports:
-      - '9002:80'
+      - '9003:80'
     env_file:
       - .env
     volumes:
