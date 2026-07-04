@@ -262,18 +262,7 @@ export default function Landing() {
                             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
                                 <div className="flex items-center gap-2 text-sm text-[#64748B]">
                                     <GraduationCap className="h-4 w-4 text-[#1E3A8A]" />
-                                    &copy; {new Date().getFullYear()} SMK Scholarship System. Hak Cipta Dilindungi.
-                                </div>
-                                <div className="flex items-center gap-6 text-sm">
-                                    <Link href="/kebijakan-privasi" className="text-[#64748B] transition-colors hover:text-[#1E3A8A]">
-                                        Kebijakan Privasi
-                                    </Link>
-                                    <Link href="/syarat-ketentuan" className="text-[#64748B] transition-colors hover:text-[#1E3A8A]">
-                                        Syarat &amp; Ketentuan
-                                    </Link>
-                                    <Link href="/kontak" className="text-[#64748B] transition-colors hover:text-[#1E3A8A]">
-                                        Hubungi Kami
-                                    </Link>
+                                    &copy; 2026 SMK Scholarship System. Hak Cipta Dilindungi.
                                 </div>
                             </div>
                         </div>

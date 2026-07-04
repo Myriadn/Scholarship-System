@@ -1,6 +1,6 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronRight, ClipboardList, LayoutGrid, LogOut, User } from 'lucide-react';
+import { Bell, ChevronRight, ClipboardList, FileCheck, GraduationCap, LayoutGrid, LogOut, User, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface FigmaSidebarLayoutProps {
@@ -15,7 +15,14 @@ export default function FigmaSidebarLayout({ children, breadcrumbs = [], roleLab
     const page = usePage();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    const navItems = getNavItems((user as { role?: string }).role);
+    const userRole = (user as { role?: string }).role;
+    const navItems = getNavItems(userRole);
+
+    const roleDisplay: Record<string, string> = {
+        siswa: 'Siswa',
+        staf_tu: 'Staff Tata Usaha',
+        kepala_sekolah: 'Kepala Sekolah',
+    };
 
     return (
         <div className="flex min-h-screen bg-[#F7F9FB]">
@@ -23,9 +30,14 @@ export default function FigmaSidebarLayout({ children, breadcrumbs = [], roleLab
             <aside className="fixed top-0 left-0 z-40 flex h-screen w-64 flex-col justify-between bg-[#00236F] px-4 py-6">
                 {/* Brand */}
                 <div>
-                    <div className="mb-10 px-2">
-                        <h1 className="text-xl leading-7 font-bold text-white">SMK Negeri</h1>
-                        <p className="text-xs font-semibold tracking-[0.05em] text-white/80 uppercase">{roleLabel}</p>
+                    <div className="mb-10 flex items-center gap-3 px-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-white">
+                            <GraduationCap className="h-[18px] w-[22px] text-[#00236F]" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl leading-7 font-bold text-white">SMK Negeri</h1>
+                            <p className="text-xs font-semibold tracking-[0.05em] text-white/80 uppercase">{roleLabel}</p>
+                        </div>
                     </div>
 
                     {/* Navigation */}
@@ -56,7 +68,7 @@ export default function FigmaSidebarLayout({ children, breadcrumbs = [], roleLab
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.05em] uppercase">
                         {breadcrumbs.map((crumb, index) => (
-                            <span key={crumb.href} className="flex items-center gap-2">
+                            <span key={crumb.href + '-' + index} className="flex items-center gap-2">
                                 {index > 0 && <ChevronRight className="h-[7px] w-[4.32px] text-[#757682]" />}
                                 {index === breadcrumbs.length - 1 ? (
                                     <Link href={crumb.href} className="font-bold text-[#00236F]">
@@ -79,36 +91,56 @@ export default function FigmaSidebarLayout({ children, breadcrumbs = [], roleLab
                         </button>
 
                         {/* User Profile with Dropdown */}
+                        <div className="h-6 w-px bg-[#C5C5D3]" />
                         <div className="relative">
-                            <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-3">
+                            <button
+                                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-all ${
+                                    userMenuOpen ? 'bg-[#F2F4F6] ring-1 ring-[#C5C5D3]' : 'hover:bg-[#F2F4F6] hover:ring-1 hover:ring-[#C5C5D3]'
+                                }`}
+                            >
                                 {/* Avatar */}
                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D0E1FB]">
                                     <User className="h-5 w-5 text-[#54647A]" />
                                 </div>
-                                {/* Name & NISN */}
+                                {/* Name & Role */}
                                 <div className="hidden flex-col text-left sm:flex">
                                     <span className="text-xs font-bold tracking-[0.05em] text-[#191C1E]">{user.name}</span>
-                                    <span className="text-[10px] leading-[15px] text-[#444651]">{user.email}</span>
+                                    <span className="text-[10px] leading-[15px] tracking-[0.05em] text-[#444651] uppercase">
+                                        {roleDisplay[userRole || ''] || ''}
+                                    </span>
                                 </div>
+                                {/* Chevron */}
+                                <svg
+                                    className={`h-3 w-3 text-[#757682] transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
+                                    viewBox="0 0 12 12"
+                                    fill="none"
+                                >
+                                    <path d="M3 5L6 8L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                             </button>
 
                             {/* Dropdown */}
                             {userMenuOpen && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                                    <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-lg border border-[#C5C5D3] bg-white shadow-lg">
+                                    <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-[#C5C5D3] bg-white shadow-lg">
+                                        {/* Arrow */}
+                                        <div className="absolute -top-1.5 right-6 h-3 w-3 rotate-45 border-t border-l border-[#C5C5D3] bg-white" />
                                         <div className="border-b border-[#C5C5D3] px-4 py-3">
                                             <p className="text-sm font-semibold text-[#191C1E]">{user.name}</p>
-                                            <p className="text-xs text-[#444651]">{user.email}</p>
+                                            <p className="text-xs text-[#444651]">{roleDisplay[userRole || ''] || ''}</p>
                                         </div>
                                         <Link
                                             href={route('logout')}
                                             method="post"
                                             as="button"
-                                            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#444651] transition-colors hover:bg-[#F2F4F6] hover:text-red-600"
+                                            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-[#444651] transition-colors hover:bg-red-50 hover:text-red-600"
                                             onClick={() => setUserMenuOpen(false)}
                                         >
-                                            <LogOut className="h-4 w-4" />
+                                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#F2F4F6] transition-colors group-hover:bg-red-100">
+                                                <LogOut className="h-3.5 w-3.5" />
+                                            </div>
                                             Log Out
                                         </Link>
                                     </div>
@@ -123,34 +155,14 @@ export default function FigmaSidebarLayout({ children, breadcrumbs = [], roleLab
 
                 {/* ── Footer ── */}
                 <footer className="flex flex-col items-center justify-between gap-4 border-t border-[#C5C5D3] bg-[#E6E8EA] px-8 py-8 sm:flex-row">
-                    <p className="text-sm leading-[21px] text-[#444651]">&copy; 2024 SMK Scholarship Management System. All rights reserved.</p>
-                    <div className="flex items-center gap-6">
-                        <Link
-                            href="#"
-                            className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                        >
-                            Kebijakan Privasi
-                        </Link>
-                        <Link
-                            href="#"
-                            className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                        >
-                            Syarat &amp; Ketentuan
-                        </Link>
-                        <Link
-                            href="#"
-                            className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                        >
-                            Hubungi Kami
-                        </Link>
-                    </div>
+                    <p className="text-sm leading-[21px] text-[#444651]">&copy; 2026 SMK Scholarship Management System. All rights reserved.</p>
                 </footer>
             </div>
         </div>
     );
 }
 
-function getNavItems(role?: string): { title: string; url: string; icon: typeof LayoutGrid }[] {
+function getNavItems(role?: string): { title: string; url: string; icon: React.ComponentType<{ className?: string }> }[] {
     switch (role) {
         case 'siswa':
             return [
@@ -158,9 +170,13 @@ function getNavItems(role?: string): { title: string; url: string; icon: typeof 
                 { title: 'Daftar Beasiswa', url: '/siswa/pendaftaran', icon: ClipboardList },
             ];
         case 'staf_tu':
-            return [{ title: 'Dashboard', url: '/staf-tu/dashboard', icon: LayoutGrid }];
+            return [
+                { title: 'Dashboard', url: '/staf-tu/dashboard', icon: LayoutGrid },
+                { title: 'Data Siswa', url: '/staf-tu/data-siswa', icon: Users },
+                { title: 'Verifikasi Berkas', url: '/staf-tu/verifikasi-berkas', icon: FileCheck },
+            ];
         case 'kepala_sekolah':
-            return [{ title: 'Laporan & Validasi', url: '/kepala-sekolah/laporan', icon: ClipboardList }];
+            return [{ title: 'Dashboard', url: '/kepala-sekolah/laporan', icon: LayoutGrid }];
         default:
             return [{ title: 'Dashboard', url: '/dashboard', icon: LayoutGrid }];
     }

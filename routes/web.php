@@ -33,11 +33,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('pendaftaran', [SiswaPendaftaranController::class, 'store'])->name('pendaftaran.store');
     });
 
-    // Staf TU routes
-    Route::prefix('staf-tu')->name('staf-tu.')->middleware('role:staf_tu')->group(function () {
-        Route::get('dashboard', [StafTUDashboardController::class, 'index'])->name('dashboard');
-        Route::post('proses-smart', [StafTUDashboardController::class, 'prosesHitung'])->name('proses-smart');
-    });
+        // Staf TU routes
+        Route::prefix('staf-tu')->name('staf-tu.')->middleware('role:staf_tu')->group(function () {
+            Route::get('dashboard', [StafTUDashboardController::class, 'index'])->name('dashboard');
+            Route::get('data-siswa', [StafTUDashboardController::class, 'dataSiswa'])->name('data-siswa');
+            Route::get('verifikasi-berkas', [StafTUDashboardController::class, 'verifikasiBerkas'])->name('verifikasi-berkas');
+            Route::post('proses-smart', [StafTUDashboardController::class, 'prosesHitung'])->name('proses-smart');
+        });
 
     // Kepala Sekolah routes
     Route::prefix('kepala-sekolah')->name('kepala-sekolah.')->middleware('role:kepala_sekolah')->group(function () {

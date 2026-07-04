@@ -1,7 +1,7 @@
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Award, LoaderCircle, Lock, School, User } from 'lucide-react';
+import { Award, LoaderCircle, Lock, User } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 interface LoginProps {
@@ -25,59 +25,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
     return (
         <>
-            <Head title="Login - SMK Scholarship System" />
+            <Head title="SMK Bina Karya Mandiri 2 Scholarship System" />
 
             <div className="flex min-h-screen flex-col bg-[#F7F9FB]">
-                {/* ── Header / Top Navigation Bar ── */}
-                <header className="fixed top-0 right-0 left-0 z-50 flex h-16 items-center justify-between border-b border-[#C5C5D3] bg-white px-6">
-                    <Link href={route('home')} className="flex items-center">
-                        <span className="text-2xl font-bold text-[#00236F]">SMK Scholarship System</span>
-                    </Link>
-
-                    {/* Nav Links */}
-                    <nav className="hidden items-center gap-8 md:flex">
-                        <Link
-                            href={route('dashboard')}
-                            className="border-b-2 border-[#00236F] pb-1 text-xs font-semibold tracking-[0.05em] text-[#00236F] uppercase"
-                        >
-                            Dashboard
-                        </Link>
-                        <Link
-                            href="#"
-                            className="rounded-sm px-2 py-1 text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                        >
-                            Bantuan
-                        </Link>
-                        <Link
-                            href="#"
-                            className="rounded-sm px-2 py-1 text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                        >
-                            Kontak
-                        </Link>
-                    </nav>
-
-                    {/* Masuk button */}
-                    <Link
-                        href={route('login')}
-                        className="inline-flex items-center gap-2 rounded-xl py-1 pr-3 pl-1 text-xs font-semibold tracking-[0.05em] text-[#191C1E] uppercase transition-colors hover:bg-gray-100"
-                    >
-                        <div className="flex h-[26.67px] w-[26.67px] items-center justify-center">
-                            <User className="h-5 w-5 text-[#00236F]" />
-                        </div>
-                        Masuk
-                    </Link>
-                </header>
-
                 {/* ── Main Content ── */}
                 <main className="flex-1">
                     {/* ── Hero & Login Section ── */}
-                    <section
-                        className="relative flex min-h-[777px] items-start justify-center overflow-hidden px-6 pt-24"
-                        style={{
-                            background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0, 35, 111, 0.12) 0%, rgba(0, 35, 111, 0) 70%), #F7F9FB',
-                        }}
-                    >
-                        <div className="grid w-full max-w-7xl grid-cols-1 gap-12 pt-24 pb-16 lg:grid-cols-12 lg:gap-12">
+                    <section className="relative flex min-h-screen items-start justify-center overflow-hidden px-6">
+                        <div className="grid w-full max-w-7xl grid-cols-1 gap-12 pt-32 pb-16 lg:grid-cols-12 lg:gap-12">
                             {/* ── Hero Content (Left) ── */}
                             <div className="flex flex-col justify-center gap-6 lg:col-span-7">
                                 {/* Badge */}
@@ -157,7 +112,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                         autoComplete="username"
                                                         value={data.email}
                                                         onChange={(e) => setData('email', e.target.value)}
-                                                        placeholder="email@smk.test"
+                                                        placeholder="email@mail.com"
                                                         className="w-full rounded border border-[#C5C5D3] bg-[#F2F4F6] py-[14px] pr-4 pl-10 text-sm text-[#6B7280] placeholder-[#6B7280] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
                                                     />
                                                 </div>
@@ -237,73 +192,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             </div>
                         </div>
                     </section>
-
-                    {/* ── School Branding Section ── */}
-                    <section className="bg-gradient-to-r from-[#0F172A] to-[#00236F] py-16">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="flex flex-col items-center text-center">
-                                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
-                                    <School className="h-10 w-10 text-white" />
-                                </div>
-                                <h2 className="text-3xl font-bold text-white sm:text-4xl">SMK Bina Karya Mandiri 2</h2>
-                                <p className="mt-3 max-w-2xl text-lg text-blue-200">
-                                    Mencetak generasi unggul berkarakter melalui pendidikan vokasi berkualitas. Bergabunglah bersama kami untuk
-                                    membangun masa depan gemilang.
-                                </p>
-                                <div className="mt-8 flex flex-wrap justify-center gap-6 text-center">
-                                    <div className="rounded-xl border border-white/10 bg-white/5 px-8 py-4 backdrop-blur">
-                                        <p className="text-2xl font-bold text-white">500+</p>
-                                        <p className="text-xs text-blue-200">Siswa Terdaftar</p>
-                                    </div>
-                                    <div className="rounded-xl border border-white/10 bg-white/5 px-8 py-4 backdrop-blur">
-                                        <p className="text-2xl font-bold text-white">12</p>
-                                        <p className="text-xs text-blue-200">Kategori Beasiswa</p>
-                                    </div>
-                                    <div className="rounded-xl border border-white/10 bg-white/5 px-8 py-4 backdrop-blur">
-                                        <p className="text-2xl font-bold text-white">Rp 2M+</p>
-                                        <p className="text-xs text-blue-200">Total Dana Hibah</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
                 </main>
-
-                {/* ── Footer ── */}
-                <footer className="border-t border-[#C5C5D3] bg-[#E6E8EA] px-8 py-8">
-                    <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
-                        {/* Left */}
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                                <Award className="h-[18px] w-[22px] text-[#00236F]" />
-                                <span className="text-base leading-6 font-bold text-[#00236F]">SMK Bina Karya Mandiri 2</span>
-                            </div>
-                            <p className="text-sm leading-[21px] text-[#444651]">© 2024 SMK Scholarship Management System. All rights reserved.</p>
-                        </div>
-
-                        {/* Right */}
-                        <div className="flex items-center gap-8">
-                            <Link
-                                href="#"
-                                className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                            >
-                                Kebijakan Privasi
-                            </Link>
-                            <Link
-                                href="#"
-                                className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                            >
-                                Syarat &amp; Ketentuan
-                            </Link>
-                            <Link
-                                href="#"
-                                className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase transition-colors hover:text-[#00236F]"
-                            >
-                                Hubungi Kami
-                            </Link>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </>
     );

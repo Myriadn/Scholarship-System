@@ -30,6 +30,30 @@ class DashboardController extends Controller
     }
 
     /**
+     * Display the Data Siswa page.
+     */
+    public function dataSiswa(Request $request): Response
+    {
+        $siswa = Siswa::with('penilaianBeasiswa')->get();
+
+        return Inertia::render('staf-tu/data-siswa', [
+            'siswa' => $siswa,
+        ]);
+    }
+
+    /**
+     * Display the Verifikasi Berkas page.
+     */
+    public function verifikasiBerkas(Request $request): Response
+    {
+        $siswa = Siswa::with('penilaianBeasiswa')->get();
+
+        return Inertia::render('staf-tu/verifikasi-berkas', [
+            'siswa' => $siswa,
+        ]);
+    }
+
+    /**
      * Process the SMART calculation.
      */
     public function prosesHitung(Request $request, SmartService $smartService): RedirectResponse

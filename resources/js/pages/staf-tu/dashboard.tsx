@@ -1,241 +1,168 @@
-import type { Column } from '@/components/data-table';
-import { DataTable } from '@/components/data-table';
-import { StatCard } from '@/components/stat-card';
-import { StatusBadge } from '@/components/status-badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
+import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import {
-    BadgeCheck,
-    Calculator,
-    CheckCircle,
-    ClipboardList,
-    Clock,
-    Download,
-    Edit,
-    Eye,
-    FileSpreadsheet,
-    Filter,
-    Search,
-    UserPlus,
-    Users,
-} from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { ClipboardList, Eye, TrendingUp, UserCheck, Users, Wallet } from 'lucide-react';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/staf-tu/dashboard' }];
-
-const siswaColumns: Column[] = [
-    { key: 'id_siswa', label: 'ID Siswa' },
-    { key: 'nama_lengkap', label: 'Nama Lengkap' },
-    { key: 'kelas', label: 'Kelas' },
-    {
-        key: 'status_berkas',
-        label: 'Status Berkas',
-        render: (value) => {
-            const status = value as string;
-            if (status === 'Terverifikasi') return <StatusBadge status="verified" label="Terverifikasi" />;
-            if (status === 'Menunggu') return <StatusBadge status="pending" label="Menunggu" />;
-            return <StatusBadge status="rejected" label="Ditolak" />;
-        },
-    },
-    { key: 'nilai_akhir', label: 'Nilai Akhir (Vi)' },
-    {
-        key: 'aksi',
-        label: 'Aksi',
-        render: () => (
-            <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#64748B] hover:text-[#1E3A8A]">
-                    <Eye className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#64748B] hover:text-[#1E3A8A]">
-                    <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#10B981] hover:text-[#10B981]/80">
-                    <BadgeCheck className="h-4 w-4" />
-                </Button>
-            </div>
-        ),
-    },
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/staf-tu/dashboard' },
+    { title: 'Beranda', href: '/staf-tu/dashboard' },
 ];
 
-const siswaData = [
-    { id_siswa: 'SIS-001', nama_lengkap: 'Ahmad Fauzi', kelas: 'XII RPL', status_berkas: 'Terverifikasi', nilai_akhir: '—' },
-    { id_siswa: 'SIS-002', nama_lengkap: 'Siti Nurhaliza', kelas: 'XI TKJ', status_berkas: 'Menunggu', nilai_akhir: '—' },
-    { id_siswa: 'SIS-003', nama_lengkap: 'Bambang Suprapto', kelas: 'XII MM', status_berkas: 'Terverifikasi', nilai_akhir: '—' },
-    { id_siswa: 'SIS-004', nama_lengkap: 'Dewi Sartika', kelas: 'X RPL', status_berkas: 'Ditolak', nilai_akhir: '—' },
-    { id_siswa: 'SIS-005', nama_lengkap: 'Rizky Pratama', kelas: 'XI Animasi', status_berkas: 'Menunggu', nilai_akhir: '—' },
-];
+interface SiswaItem {
+    id: number;
+    nisn: string;
+    nama_siswa: string;
+    jurusan: string;
+    kelas: string;
+    penilaian_beasiswa?: { nilai_akhir?: number; ranking?: number } | null;
+}
 
 export default function StafTUDashboard() {
-    const [showSmartSuccess, setShowSmartSuccess] = useState(false);
+    const { siswa } = usePage<{ siswa: SiswaItem[] }>().props;
 
-    const { post, processing } = useForm({});
-
-    const handleProsesSMART: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(route('staf-tu.proses-smart'), {
-            onSuccess: () => setShowSmartSuccess(true),
-        });
-    };
+    const totalPendaftar = siswa?.length || 0;
+    const terverifikasi = siswa?.filter((s) => s.penilaian_beasiswa?.nilai_akhir).length || 0;
+    const belumVerifikasi = totalPendaftar - terverifikasi;
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <FigmaSidebarLayout breadcrumbs={breadcrumbs} roleLabel="Admin Sistem">
             <Head title="Dashboard Staf TU" />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-                {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1E3A8A]/10">
-                                <Users className="h-5 w-5 text-[#1E3A8A]" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-[#0F172A]">Dashboard</h1>
-                                <p className="text-sm text-[#64748B]">Admin TU — Staff Pelaksana</p>
-                            </div>
+            <div className="flex flex-col gap-6 p-8">
+                {/* ── Welcome Header ── */}
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-[32px] leading-[38.4px] font-bold tracking-[-0.02em] text-[#00236F]">Manajemen Beasiswa</h1>
+                    <p className="text-sm leading-[21px] text-[#444651]">
+                        Kelola verifikasi berkas dan hitung skor akhir beasiswa menggunakan metode SMART.
+                    </p>
+                </div>
+
+                {/* ── Stats Grid ── */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {/* Total Pendaftar */}
+                    <div className="flex flex-col gap-2 rounded border border-[#E2E8F0] bg-white p-6">
+                        <Users className="h-4 w-4 text-[#191C1E]" />
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">TOTAL PENDAFTAR</span>
+                        <span className="text-2xl leading-[31.2px] font-semibold text-[#191C1E]">{totalPendaftar.toLocaleString()}</span>
+                        <div className="flex items-center gap-1">
+                            <TrendingUp className="h-2 w-[13.33px] text-[#10B981]" />
+                            <span className="text-xs font-semibold tracking-[0.05em] text-[#10B981]">+12% dr bln lalu</span>
                         </div>
                     </div>
-                    <form onSubmit={handleProsesSMART}>
-                        <Button type="submit" className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90" disabled={processing}>
-                            {processing ? (
-                                <span className="flex items-center gap-2">
-                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                    Memproses...
-                                </span>
-                            ) : (
-                                <>
-                                    <Calculator className="mr-2 h-4 w-4" />
-                                    Proses Hitung SMART
-                                </>
-                            )}
-                        </Button>
-                    </form>
+
+                    {/* Belum Verifikasi */}
+                    <div className="flex flex-col gap-2 rounded border border-[#E2E8F0] bg-white p-6">
+                        <ClipboardList className="h-[21px] w-[21px] text-[#F59E0B]" />
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">BELUM VERIFIKASI</span>
+                        <span className="text-2xl leading-[31.2px] font-semibold text-[#191C1E]">{belumVerifikasi}</span>
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651]">Perlu tindakan segera</span>
+                    </div>
+
+                    {/* Terverifikasi */}
+                    <div className="flex flex-col gap-2 rounded border border-[#E2E8F0] bg-white p-6">
+                        <UserCheck className="h-[21px] w-[21px] text-[#10B981]" />
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">TERVERIFIKASI</span>
+                        <span className="text-2xl leading-[31.2px] font-semibold text-[#191C1E]">{terverifikasi.toLocaleString()}</span>
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651]">Sudah masuk database</span>
+                    </div>
+
+                    {/* Kuota Tersedia */}
+                    <div className="flex flex-col gap-2 rounded border border-[#E2E8F0] bg-white p-6">
+                        <Wallet className="h-5 w-5 text-[#3B82F6]" />
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">KUOTA TERSEDIA</span>
+                        <span className="text-2xl leading-[31.2px] font-semibold text-[#191C1E]">150</span>
+                        <span className="text-xs font-semibold tracking-[0.05em] text-[#444651]">Tahun Pelajaran 2024</span>
+                    </div>
                 </div>
 
-                {/* Section Header */}
-                <div>
-                    <h2 className="text-lg font-semibold text-[#0F172A]">Manajemen Beasiswa</h2>
-                    <p className="text-sm text-[#64748B]">Kelola data pendaftar dan proses verifikasi berkas beasiswa</p>
-                </div>
+                {/* ── Tabel Data Siswa ── */}
+                <div className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white">
+                    {/* Tabel Header */}
+                    <div className="flex items-center bg-[#00236F] px-6 py-4">
+                        <span className="w-[120px] text-xs font-semibold tracking-[0.05em] text-white uppercase">ID SISWA</span>
+                        <span className="flex-1 text-xs font-semibold tracking-[0.05em] text-white uppercase">NAMA LENGKAP</span>
+                        <span className="w-[100px] text-xs font-semibold tracking-[0.05em] text-white uppercase">KELAS</span>
+                        <span className="w-[120px] text-xs font-semibold tracking-[0.05em] text-white uppercase">JURUSAN</span>
+                        <span className="w-[100px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">STATUS</span>
+                        <span className="w-[100px] text-center text-xs font-semibold tracking-[0.05em] text-white uppercase">NILAI AKHIR</span>
+                        <span className="w-[80px] text-right text-xs font-semibold tracking-[0.05em] text-white uppercase">AKSI</span>
+                    </div>
 
-                {/* Stat Cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard icon={UserPlus} label="Total Pendaftar" value="1,248" trend="12%" trendUp variant="default" />
-                    <StatCard icon={Clock} label="Belum Verifikasi" value="42" trend="+5" trendUp={false} variant="warning" />
-                    <StatCard icon={BadgeCheck} label="Terverifikasi" value="1,186" trend="+8%" trendUp variant="success" />
-                    <StatCard icon={ClipboardList} label="Kuota Tersedia" value="150" variant="default" />
-                </div>
+                    {/* Tabel Body */}
+                    {!siswa || siswa.length === 0 ? (
+                        <div className="px-6 py-12 text-center text-sm text-[#6B7280]">Belum ada data pendaftar.</div>
+                    ) : (
+                        <div className="divide-y divide-[#E2E8F0]">
+                            {siswa.slice(0, 5).map((s, idx) => {
+                                const initials = s.nama_siswa
+                                    ? s.nama_siswa
+                                          .split(' ')
+                                          .map((n) => n[0])
+                                          .join('')
+                                          .slice(0, 2)
+                                          .toUpperCase()
+                                    : '--';
+                                const avatarColors = ['#DCE1FF', '#DAE2FD', '#D3E4FE', '#FEF3C7', '#D1FAE5'];
+                                const avatarColor = avatarColors[idx % avatarColors.length];
+                                const textColor = ['#00164E', '#131B2E', '#0B1C30', '#92400E', '#065F46'][idx % 5];
+                                const hasNilai = s.penilaian_beasiswa?.nilai_akhir != null;
 
-                {/* Filter + Export */}
-                <Card className="border-[#E2E8F0]">
-                    <CardContent className="p-4">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                                <div className="relative flex-1 sm:max-w-xs">
-                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
-                                    <Input placeholder="Cari siswa..." className="border-[#E2E8F0] pl-9" />
-                                </div>
-                                <div className="flex gap-3">
-                                    <Select defaultValue="semua">
-                                        <SelectTrigger className="w-[160px] border-[#E2E8F0]">
-                                            <Filter className="mr-2 h-4 w-4" />
-                                            <SelectValue placeholder="Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="semua">Semua</SelectItem>
-                                            <SelectItem value="terverifikasi">Terverifikasi</SelectItem>
-                                            <SelectItem value="menunggu">Menunggu</SelectItem>
-                                            <SelectItem value="ditolak">Ditolak</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <Select defaultValue="2025">
-                                        <SelectTrigger className="w-[130px] border-[#E2E8F0]">
-                                            <SelectValue placeholder="Tahun" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="2025">2025</SelectItem>
-                                            <SelectItem value="2024">2024</SelectItem>
-                                            <SelectItem value="2023">2023</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <Button variant="outline" className="border-[#E2E8F0] text-[#64748B]">
-                                <Download className="mr-2 h-4 w-4" />
-                                Ekspor .CSV
-                            </Button>
+                                return (
+                                    <div
+                                        key={s.id}
+                                        className={`flex items-center px-6 py-3 transition-colors hover:bg-[#F8FAFC] ${
+                                            idx % 2 === 1 ? 'bg-[#F2F4F6]/60' : ''
+                                        }`}
+                                    >
+                                        <span className="w-[120px] text-sm leading-[19.6px] font-bold text-[#00236F]">
+                                            #SW-{String(s.id).padStart(4, '0')}
+                                        </span>
+                                        <div className="flex flex-1 items-center gap-3">
+                                            <div
+                                                className="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-bold"
+                                                style={{ backgroundColor: avatarColor, color: textColor }}
+                                            >
+                                                {initials}
+                                            </div>
+                                            <span className="text-sm leading-[19.6px] font-semibold text-[#191C1E]">{s.nama_siswa}</span>
+                                        </div>
+                                        <span className="w-[100px] text-sm leading-[19.6px] text-[#444651]">{s.kelas || '-'}</span>
+                                        <span className="w-[120px] text-sm leading-[19.6px] text-[#444651]">{s.jurusan || '-'}</span>
+                                        <div className="flex w-[100px] items-center justify-center">
+                                            <span
+                                                className={`inline-block rounded-xl px-3 py-1 text-[11px] leading-[16.5px] font-bold ${
+                                                    hasNilai
+                                                        ? 'bg-[#10B981]/10 text-[#10B981] ring-1 ring-[#10B981]/20'
+                                                        : 'bg-[#F59E0B]/10 text-[#F59E0B] ring-1 ring-[#F59E0B]/20'
+                                                }`}
+                                            >
+                                                {hasNilai ? 'VERIFIED' : 'PENDING'}
+                                            </span>
+                                        </div>
+                                        <div className="flex w-[100px] items-center justify-center">
+                                            <span className="text-sm leading-[21px] font-bold text-[#00236F]">
+                                                {hasNilai ? s.penilaian_beasiswa!.nilai_akhir!.toFixed(3) : '-'}
+                                            </span>
+                                        </div>
+                                        <div className="flex w-[80px] items-center justify-end gap-2">
+                                            <span className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-[#3B82F6] transition-colors hover:bg-[#F2F4F6]">
+                                                <Eye className="h-4 w-4" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    </CardContent>
-                </Card>
+                    )}
 
-                {/* Data Table */}
-                <Card className="border-[#E2E8F0]">
-                    <CardHeader>
-                        <CardTitle className="text-base text-[#0F172A]">Data Pendaftar Beasiswa</CardTitle>
-                        <CardDescription>Total 1,248 pendaftar — Menampilkan halaman 1</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DataTable columns={siswaColumns} data={siswaData} />
-
-                        {/* Pagination */}
-                        <div className="mt-4 flex items-center justify-between">
-                            <p className="text-sm text-[#64748B]">Menampilkan 1-5 dari 1,248</p>
-                            <div className="flex items-center gap-1">
-                                <Button variant="outline" size="sm" className="h-8 border-[#E2E8F0] px-3" disabled>
-                                    Sebelumnya
-                                </Button>
-                                <Button variant="default" size="sm" className="h-8 w-8 bg-[#1E3A8A] p-0 hover:bg-[#1E3A8A]/90">
-                                    1
-                                </Button>
-                                <Button variant="outline" size="sm" className="h-8 w-8 border-[#E2E8F0] p-0">
-                                    2
-                                </Button>
-                                <Button variant="outline" size="sm" className="h-8 w-8 border-[#E2E8F0] p-0">
-                                    3
-                                </Button>
-                                <span className="px-1 text-[#64748B]">...</span>
-                                <Button variant="outline" size="sm" className="h-8 w-8 border-[#E2E8F0] p-0">
-                                    250
-                                </Button>
-                                <Button variant="outline" size="sm" className="h-8 border-[#E2E8F0] px-3">
-                                    Selanjutnya
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* Pagination Info */}
+                    <div className="border-t border-[#E2E8F0] bg-[#F2F4F6] px-6 py-3">
+                        <p className="text-sm leading-[21px] text-[#444651]">
+                            Menampilkan 1-{Math.min(5, totalPendaftar)} dari {totalPendaftar} data
+                        </p>
+                    </div>
+                </div>
             </div>
-
-            {/* Success Modal */}
-            <Dialog open={showSmartSuccess} onOpenChange={setShowSmartSuccess}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#10B981]/10">
-                            <CheckCircle className="h-8 w-8 text-[#10B981]" />
-                        </div>
-                        <DialogTitle className="text-center text-xl text-[#0F172A]">Proses SMART Berhasil!</DialogTitle>
-                        <DialogDescription className="text-center">
-                            Perhitungan menggunakan metode Simple Multi-Attribute Rating Technique telah berhasil dilakukan. Hasil perankingan dapat
-                            dilihat di halaman Laporan.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-center gap-3 pt-2">
-                        <Button variant="outline" className="border-[#E2E8F0]" onClick={() => setShowSmartSuccess(false)}>
-                            Tutup
-                        </Button>
-                        <Button className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90">
-                            <FileSpreadsheet className="mr-2 h-4 w-4" />
-                            Lihat Laporan
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        </AppLayout>
+        </FigmaSidebarLayout>
     );
 }
