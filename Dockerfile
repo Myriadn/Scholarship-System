@@ -63,6 +63,12 @@ COPY --from=node-builder /app /var/www/html
 RUN rm -rf node_modules resources/js resources/css \
     && composer install --no-dev --optimize-autoloader --no-interaction
 
+# Create required Laravel storage directories
+RUN mkdir -p /var/www/html/storage/framework/cache/data \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
