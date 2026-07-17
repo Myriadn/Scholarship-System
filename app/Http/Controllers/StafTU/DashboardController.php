@@ -88,7 +88,7 @@ class DashboardController extends Controller
             'kelas' => 'required|string|max:20',
         ]);
 
-        $email = $validated['nisn'] . '@siswa.smk.test';
+        $email = $validated['nisn'] . '@smk.test';
 
         $user = User::create([
             'name' => $validated['nama_siswa'],

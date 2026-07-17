@@ -66,7 +66,7 @@ class SmartService
                 $uField = 'u_' . strtolower($k->kode_kriteria);
                 $vi += ($k->bobot_normalisasi * ($p->$uField ?? 0));
             }
-            $p->nilai_akhir_vi = round($vi, 4);
+            $p->nilai_akhir_vi = round($vi * 100, 2);
             return $p;
         });
     }
@@ -88,7 +88,7 @@ class SmartService
      */
     public function prosesLengkap(): Collection
     {
-        $kriteria = Kriteria::all();
+        $kriteria = Kriteria::where('is_active', true)->get();
         $kriteria = $this->normalisasiBobot($kriteria);
 
         $penilaians = PenilaianBeasiswa::with('siswa')->get();

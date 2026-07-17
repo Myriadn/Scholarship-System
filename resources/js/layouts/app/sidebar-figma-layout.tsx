@@ -1,6 +1,6 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronRight, ClipboardList, FileCheck, GraduationCap, LayoutGrid, LogOut, User, Users } from 'lucide-react';
+import { Bell, ChevronRight, ClipboardList, FileCheck, GraduationCap, LayoutGrid, LogOut, SlidersHorizontal, User, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface FigmaSidebarLayoutProps {
@@ -172,6 +172,7 @@ function getNavItems(role?: string): { title: string; url: string; icon: React.C
         case 'staf_tu':
             return [
                 { title: 'Dashboard', url: '/staf-tu/dashboard', icon: LayoutGrid },
+                { title: 'Kelola Kriteria', url: '/staf-tu/kelola-kriteria', icon: SlidersHorizontal },
                 { title: 'Data Siswa', url: '/staf-tu/data-siswa', icon: Users },
                 { title: 'Verifikasi Berkas', url: '/staf-tu/verifikasi-berkas', icon: FileCheck },
             ];

@@ -14,6 +14,7 @@ class Kriteria extends Model
         'bobot_awal',
         'bobot_normalisasi',
         'sifat',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -21,6 +22,7 @@ class Kriteria extends Model
         return [
             'bobot_awal' => 'integer',
             'bobot_normalisasi' => 'float',
+            'is_active' => 'boolean',
         ];
     }
 }

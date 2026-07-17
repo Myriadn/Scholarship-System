@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\PendaftaranController as SiswaPendaftaranController;
 use App\Http\Controllers\StafTU\DashboardController as StafTUDashboardController;
+use App\Http\Controllers\StafTU\KelolaKriteriaController as StafTUKelolaKriteriaController;
 use App\Http\Controllers\KepalaSekolah\LaporanController as KepalaSekolahLaporanController;
 
 Route::get('/', function () {
@@ -43,12 +44,20 @@ Route::middleware(['auth'])->group(function () {
             Route::post('verifikasi', [StafTUDashboardController::class, 'verifikasi'])->name('verifikasi');
             Route::get('berkas/download/{id}', [StafTUDashboardController::class, 'downloadBerkas'])->name('berkas.download');
             Route::post('proses-smart', [StafTUDashboardController::class, 'prosesHitung'])->name('proses-smart');
+
+            // Kelola Kriteria routes
+            Route::get('kelola-kriteria', [StafTUKelolaKriteriaController::class, 'index'])->name('kelola-kriteria');
+            Route::post('kelola-kriteria/store', [StafTUKelolaKriteriaController::class, 'store'])->name('kelola-kriteria.store');
+            Route::post('kelola-kriteria/update/{id}', [StafTUKelolaKriteriaController::class, 'update'])->name('kelola-kriteria.update');
+            Route::post('kelola-kriteria/toggle/{id}', [StafTUKelolaKriteriaController::class, 'toggleActive'])->name('kelola-kriteria.toggle');
+            Route::post('kelola-kriteria/delete/{id}', [StafTUKelolaKriteriaController::class, 'destroy'])->name('kelola-kriteria.delete');
         });
 
     // Kepala Sekolah routes
     Route::prefix('kepala-sekolah')->name('kepala-sekolah.')->middleware('role:kepala_sekolah')->group(function () {
         Route::get('laporan', [KepalaSekolahLaporanController::class, 'index'])->name('laporan');
         Route::post('approve/{id}', [KepalaSekolahLaporanController::class, 'approve'])->name('approve');
+        Route::post('reject/{id}', [KepalaSekolahLaporanController::class, 'reject'])->name('reject');
     });
 });
 

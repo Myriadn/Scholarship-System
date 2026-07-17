@@ -46,4 +46,21 @@ class LaporanController extends Controller
         return redirect()->route('kepala-sekolah.laporan')
             ->with('success', 'Data beasiswa berhasil disetujui.');
     }
+
+    /**
+     * Reject a specific penilaian.
+     */
+    public function reject(Request $request, int $id): RedirectResponse
+    {
+        $penilaian = PenilaianBeasiswa::findOrFail($id);
+
+        $penilaian->update([
+            'status_approval' => 'rejected',
+            'approved_by' => $request->user()->id,
+            'approved_at' => now(),
+        ]);
+
+        return redirect()->route('kepala-sekolah.laporan')
+            ->with('success', 'Data beasiswa berhasil ditolak.');
+    }
 }

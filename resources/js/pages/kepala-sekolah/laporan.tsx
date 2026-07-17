@@ -1,7 +1,7 @@
 import FigmaSidebarLayout from '@/layouts/app/sidebar-figma-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { CheckCircle, Download, Printer, Search, Users } from 'lucide-react';
+import { CheckCircle, Download, Printer, Search, Users, X } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -30,6 +30,7 @@ export default function LaporanKepalaSekolah() {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [jurusanFilter, setJurusanFilter] = useState('semua');
+    const [statusFilter, setStatusFilter] = useState('semua');
     const [currentPage, setCurrentPage] = useState(1);
     const perPage = 10;
 
@@ -39,7 +40,8 @@ export default function LaporanKepalaSekolah() {
         const s = p.siswa;
         const matchSearch = !searchQuery || s?.nama_siswa?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.nisn?.includes(searchQuery);
         const matchJurusan = jurusanFilter === 'semua' || s?.jurusan === jurusanFilter;
-        return matchSearch && matchJurusan;
+        const matchStatus = statusFilter === 'semua' || p.status_approval === statusFilter;
+        return matchSearch && matchJurusan && matchStatus;
     });
 
     const totalPages = Math.ceil(filteredData.length / perPage);
@@ -48,8 +50,7 @@ export default function LaporanKepalaSekolah() {
     const endEntry = Math.min(currentPage * perPage, filteredData.length);
 
     const totalPendaftar = penilaians?.length || 0;
-    const rataRataNilai =
-        totalPendaftar > 0 ? (penilaians?.reduce((sum, p) => sum + (p.nilai_akhir_vi || 0), 0) / totalPendaftar).toFixed(3) : '0.000';
+    const rataRataNilai = totalPendaftar > 0 ? (penilaians?.reduce((sum, p) => sum + (p.nilai_akhir_vi || 0), 0) / totalPendaftar).toFixed(1) : '0.0';
 
     const getPageNumbers = () => {
         const pages: (number | 'ellipsis')[] = [];
@@ -165,10 +166,18 @@ export default function LaporanKepalaSekolah() {
                                     </option>
                                 ))}
                             </select>
-                            <select className="rounded border border-[#C5C5D3] bg-white px-3 py-2 text-sm text-[#191C1E] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]">
-                                <option>Semua Status</option>
-                                <option>Pending</option>
-                                <option>Disetujui</option>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="rounded border border-[#C5C5D3] bg-white px-3 py-2 text-sm text-[#191C1E] transition-colors outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
+                            >
+                                <option value="semua">Semua Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Disetujui</option>
+                                <option value="rejected">Ditolak</option>
                             </select>
                         </div>
                     </div>
@@ -227,7 +236,7 @@ export default function LaporanKepalaSekolah() {
                                             {/* Skor Akhir */}
                                             <div className="flex w-[100px] items-center justify-center py-1">
                                                 <span className="text-sm leading-[19.6px] font-bold text-[#00236F]">
-                                                    {p.nilai_akhir_vi?.toFixed(3) || '-'}
+                                                    {p.nilai_akhir_vi?.toFixed(1) || '-'}
                                                 </span>
                                             </div>
 
@@ -238,6 +247,11 @@ export default function LaporanKepalaSekolah() {
                                                         <CheckCircle className="h-3 w-3" />
                                                         Disetujui
                                                     </span>
+                                                ) : p.status_approval === 'rejected' ? (
+                                                    <span className="inline-flex items-center gap-1 rounded-xl bg-[#EF4444]/10 px-3 py-1 text-[10px] leading-[14px] font-bold text-[#EF4444] uppercase">
+                                                        <X className="h-3 w-3" />
+                                                        Ditolak
+                                                    </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 rounded-xl bg-[#F59E0B]/10 px-3 py-1 text-[10px] leading-[14px] font-bold text-[#F59E0B] uppercase">
                                                         Pending
@@ -246,14 +260,20 @@ export default function LaporanKepalaSekolah() {
                                             </div>
 
                                             {/* Aksi */}
-                                            <div className="flex w-[80px] items-center justify-start">
+                                            <div className="flex w-[80px] items-center justify-center gap-1">
                                                 {p.status_approval === 'approved' ? (
-                                                    <span className="inline-flex items-center gap-1 text-xs text-[#10B981]">
-                                                        <CheckCircle className="h-4 w-4" />
-                                                        Sudah
+                                                    <span className="text-xs text-[#10B981]" title="Sudah disetujui">
+                                                        <CheckCircle className="h-5 w-5" />
+                                                    </span>
+                                                ) : p.status_approval === 'rejected' ? (
+                                                    <span className="text-xs text-[#EF4444]" title="Sudah ditolak">
+                                                        <X className="h-5 w-5" />
                                                     </span>
                                                 ) : (
-                                                    <ApproveButton penilaianId={p.id} />
+                                                    <>
+                                                        <ApproveButton penilaianId={p.id} />
+                                                        <RejectButton penilaianId={p.id} />
+                                                    </>
                                                 )}
                                             </div>
                                         </div>
@@ -308,7 +328,7 @@ export default function LaporanKepalaSekolah() {
     );
 }
 
-/* ── Inline Approve Button with POST ── */
+/* ── Approve Button (icon centang) ── */
 function ApproveButton({ penilaianId }: { penilaianId: number }) {
     const { post, processing } = useForm({});
 
@@ -322,9 +342,33 @@ function ApproveButton({ penilaianId }: { penilaianId: number }) {
             <button
                 type="submit"
                 disabled={processing}
-                className="inline-flex items-center gap-1 rounded bg-[#00236F] px-4 py-1.5 text-xs leading-[16.8px] font-medium text-white transition-colors hover:bg-[#001B59] disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-8 w-8 items-center justify-center rounded text-[#10B981] transition-colors hover:bg-[#F2F4F6] disabled:cursor-not-allowed disabled:opacity-50"
+                title="Setujui"
             >
-                {processing ? '...' : 'Setujui'}
+                {processing ? <span className="text-xs font-bold">...</span> : <CheckCircle className="h-5 w-5" />}
+            </button>
+        </form>
+    );
+}
+
+/* ── Reject Button (icon silang) ── */
+function RejectButton({ penilaianId }: { penilaianId: number }) {
+    const { post, processing } = useForm({});
+
+    const handleReject: FormEventHandler = (e) => {
+        e.preventDefault();
+        post(route('kepala-sekolah.reject', penilaianId));
+    };
+
+    return (
+        <form onSubmit={handleReject}>
+            <button
+                type="submit"
+                disabled={processing}
+                className="flex h-8 w-8 items-center justify-center rounded text-[#EF4444] transition-colors hover:bg-[#F2F4F6] disabled:cursor-not-allowed disabled:opacity-50"
+                title="Tolak"
+            >
+                {processing ? <span className="text-xs font-bold">...</span> : <X className="h-5 w-5" />}
             </button>
         </form>
     );

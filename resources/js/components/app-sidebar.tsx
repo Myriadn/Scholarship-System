@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ClipboardList, FileSpreadsheet, LayoutGrid } from 'lucide-react';
+import { ClipboardList, FileSpreadsheet, LayoutGrid, SlidersHorizontal } from 'lucide-react';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
@@ -62,7 +62,12 @@ function getNavItems(role?: string): NavItem[] {
                 { title: 'Pendaftaran Beasiswa', url: '/siswa/pendaftaran', icon: ClipboardList },
             ];
         case 'staf_tu':
-            return [{ title: 'Dashboard', url: '/staf-tu/dashboard', icon: LayoutGrid }];
+            return [
+                { title: 'Dashboard', url: '/staf-tu/dashboard', icon: LayoutGrid },
+                { title: 'Data Siswa', url: '/staf-tu/data-siswa', icon: ClipboardList },
+                { title: 'Verifikasi Berkas', url: '/staf-tu/verifikasi-berkas', icon: FileSpreadsheet },
+                { title: 'Kelola Kriteria', url: '/staf-tu/kelola-kriteria', icon: SlidersHorizontal },
+            ];
         case 'kepala_sekolah':
             return [{ title: 'Laporan & Validasi', url: '/kepala-sekolah/laporan', icon: FileSpreadsheet }];
         default:

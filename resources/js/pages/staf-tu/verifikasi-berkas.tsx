@@ -291,14 +291,14 @@ export default function VerifikasiBerkas() {
                                         disabled={verifying}
                                         className="rounded bg-[#10B981] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#059669] disabled:cursor-not-allowed disabled:opacity-70"
                                     >
-                                        {verifying ? 'Memproses...' : '✓ Setujui'}
+                                        {verifying ? 'Memproses...' : 'Setujui'}
                                     </button>
                                     <button
                                         onClick={() => handleVerifikasi('rejected')}
                                         disabled={verifying}
                                         className="rounded bg-[#EF4444] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#DC2626] disabled:cursor-not-allowed disabled:opacity-70"
                                     >
-                                        ✕ Tolak
+                                        Tolak
                                     </button>
                                 </div>
                             </div>
