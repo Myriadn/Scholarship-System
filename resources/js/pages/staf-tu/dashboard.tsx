@@ -70,7 +70,7 @@ export default function StafTUDashboard() {
                     <div className="flex flex-col gap-2 rounded border border-[#E2E8F0] bg-white p-6">
                         <Wallet className="h-5 w-5 text-[#3B82F6]" />
                         <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">KUOTA TERSEDIA</span>
-                        <span className="text-2xl leading-[31.2px] font-semibold text-[#191C1E]">150</span>
+                        <span className="text-2xl leading-[31.2px] font-semibold text-[#191C1E]">0</span>
                         <span className="text-xs font-semibold tracking-[0.05em] text-[#444651]">Tahun Pelajaran 2025</span>
                     </div>
                 </div>

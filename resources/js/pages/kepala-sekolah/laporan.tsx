@@ -122,7 +122,7 @@ export default function LaporanKepalaSekolah() {
                     <div className="flex flex-col gap-1 rounded border border-[#E2E8F0] bg-white p-6">
                         <span className="text-xs font-semibold tracking-[0.05em] text-[#444651] uppercase">QUOTA BEASISWA</span>
                         <div className="flex items-center justify-between">
-                            <span className="text-2xl leading-[31.2px] font-bold text-[#00236F]">25</span>
+                            <span className="text-2xl leading-[31.2px] font-bold text-[#00236F]">0</span>
                             <Users className="h-3 w-6 text-[#757682]" />
                         </div>
                     </div>

@@ -36,10 +36,10 @@ export default function SiswaDashboard() {
     // Determine stage: pendaftaran → verifikasi → pengumuman
     let stage: 'pendaftaran' | 'verifikasi' | 'pengumuman' = 'pendaftaran';
     if (penilaian) {
-        stage = penilaian.status_approval === 'approved' ? 'pengumuman' : 'verifikasi';
+        stage = penilaian.status_approval === 'pending' ? 'verifikasi' : 'pengumuman';
     }
 
-    const isLolos = stage === 'pengumuman' && penilaian?.ranking && penilaian.ranking <= 25;
+    const isLolos = stage === 'pengumuman' && penilaian?.status_approval === 'approved';
 
     const stepData = [
         { label: 'Pendaftaran', icon: Check, status: stage === 'pendaftaran' ? 'active' : ('completed' as const) },
@@ -109,8 +109,8 @@ export default function SiswaDashboard() {
                             🎉 Selamat! Anda dinyatakan <span className="uppercase">Lolos</span> seleksi beasiswa.
                         </p>
                         <p className="text-sm leading-[21px] text-[#444651]">
-                            Anda termasuk dalam {penilaian?.ranking} besar penerima Beasiswa Prestasi Akademik 2025/2025. Silakan hubungi pihak
-                            sekolah untuk informasi lebih lanjut mengenai pencairan dana beasiswa.
+                            Berdasarkan hasil perhitungan SMART dan persetujuan Kepala Sekolah, Anda berhak menerima Beasiswa Free SPP Tahun Ajaran
+                            2025/2026. Silakan hubungi pihak sekolah untuk informasi lebih lanjut.
                         </p>
                     </div>
                 ) : (

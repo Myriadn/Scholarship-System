@@ -224,12 +224,6 @@ export default function VerifikasiBerkas() {
                                                 {selectedSiswa.penilaian_beasiswa?.c4_nilai ?? '-'}
                                             </p>
                                         </div>
-                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-3 py-2.5">
-                                            <p className="text-xs font-semibold tracking-[0.05em] text-[#757682] uppercase">Absensi</p>
-                                            <p className="mt-0.5 text-sm font-semibold text-[#191C1E]">
-                                                {selectedSiswa.penilaian_beasiswa?.c5_nilai ?? '-'}
-                                            </p>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -340,7 +334,7 @@ export default function VerifikasiBerkas() {
                                 </div>
                                 <div>
                                     <p className="mb-3 text-xs font-bold tracking-[0.05em] text-[#444651] uppercase">Nilai Kriteria</p>
-                                    <div className="grid grid-cols-5 gap-2">
+                                    <div className="grid grid-cols-4 gap-2">
                                         <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
                                             <p className="text-xs font-semibold text-[#757682] uppercase">Nilai Akademik</p>
                                             <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c1_nilai ?? '-'}</p>
@@ -358,10 +352,6 @@ export default function VerifikasiBerkas() {
                                         <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
                                             <p className="text-xs font-semibold text-[#757682] uppercase">Prestasi</p>
                                             <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c4_nilai ?? '-'}</p>
-                                        </div>
-                                        <div className="rounded border border-[#E2E8F0] bg-[#F9FAFB] px-2 py-2 text-center">
-                                            <p className="text-xs font-semibold text-[#757682] uppercase">Absensi</p>
-                                            <p className="text-base font-bold text-[#191C1E]">{detailSiswa.penilaian_beasiswa?.c5_nilai ?? '-'}</p>
                                         </div>
                                     </div>
                                 </div>
